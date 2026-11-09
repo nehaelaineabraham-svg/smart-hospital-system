@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPD Waiting Room TV Broadcast – MediFlow Multispeciality</title>
-    <!-- Auto-refresh every 6 seconds for continuous live stream -->
-    <meta http-equiv="refresh" content="6">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono for Airport/Hospital LED feel -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -24,226 +23,555 @@
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        tv: {
-                            bg: '#060a12',
-                            panel: '#0d1527',
-                            border: '#1b2a4a',
-                            accent: '#38bdf8',
+                        navy: {
+                            950: '#050913',
+                            900: '#090f1d',
+                            850: '#0d1629',
+                            800: '#131e38',
+                            700: '#1b2a4e',
+                        },
+                        display: {
+                            emerald: '#10b981',
+                            teal: '#14b8a6',
+                            sky: '#0284c7',
+                            amber: '#f59e0b',
                         }
+                    },
+                    boxShadow: {
+                        'neon-emerald': '0 0 35px -5px rgba(16, 185, 129, 0.45)',
+                        'neon-sky': '0 0 35px -5px rgba(2, 132, 199, 0.45)',
+                        'neon-amber': '0 0 30px -5px rgba(245, 158, 11, 0.35)',
                     }
                 }
             }
         }
     </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background-color: #050913;
+            color: #f8fafc;
+            user-select: none;
+            overflow-x: hidden;
+        }
+        
+        /* High-contrast LED Glow */
+        .token-glow {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.6), 0 0 40px rgba(14, 165, 233, 0.4);
+        }
+        .token-active-glow {
+            text-shadow: 0 0 25px rgba(52, 211, 153, 0.8), 0 0 50px rgba(16, 185, 129, 0.5);
+        }
+        
+        /* Smooth marquee ticker */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 35s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
+        /* Pulse ring animation for active cabin */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .active-cabin-pulse {
+            animation: pulse-ring 2.5s ease-in-out infinite;
+        }
+    </style>
 </head>
-<body class="bg-tv-bg text-slate-100 min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 font-sans select-none antialiased">
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-sky-500 selection:text-white">
 
-    <!-- Broadcast Header -->
-    <header class="flex flex-col md:flex-row items-center justify-between pb-6 border-b border-tv-border gap-4">
-        <div class="flex items-center space-x-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 via-sky-600 to-teal-400 flex items-center justify-center text-white shadow-2xl shadow-sky-500/40">
-                <i class="fa-solid fa-heart-pulse text-3xl animate-pulse"></i>
-            </div>
-            <div>
-                <div class="flex items-center space-x-2.5">
-                    <h1 class="text-3xl font-black tracking-tight text-white font-sans">
-                        Medi<span class="text-sky-400">Flow</span>
-                    </h1>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-sky-950 text-sky-300 border border-sky-800">
-                        OPD Matrix TV
-                    </span>
+    <!-- Top Hospital Digital Signage Header -->
+    <header class="bg-navy-900/90 border-b border-navy-800 px-6 lg:px-10 py-4 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Left: Hospital Branding & Accreditation -->
+            <div class="flex items-center space-x-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 via-sky-600 to-teal-400 flex items-center justify-center text-white shadow-neon-sky">
+                    <i class="fa-solid fa-heart-pulse text-3xl"></i>
                 </div>
-                <p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">
-                    Multi-Speciality Hospital Outpatient Waiting Broadcast &bull; {{ today|date:"l, d F Y" }}
-                </p>
-            </div>
-        </div>
-
-        <!-- Live Clock & Status Badge -->
-        <div class="flex items-center space-x-6">
-            <!-- Audio Toggle Helper -->
-            <button onclick="toggleSpeech()" id="audio-btn" class="hidden sm:flex items-center space-x-2 text-xs font-bold text-sky-300 bg-sky-950/80 border border-sky-800/80 px-3.5 py-2 rounded-xl hover:bg-sky-900 transition">
-                <i class="fa-solid fa-volume-high text-sky-400"></i>
-                <span id="audio-status">Voice Calling Active</span>
-            </button>
-
-            <div class="flex items-center space-x-2 text-xs font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-4 py-2 rounded-xl shadow-lg shadow-emerald-950/50">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span class="tracking-widest">LIVE BROADCAST</span>
+                <div>
+                    <div class="flex items-center space-x-3">
+                        <h1 class="text-3xl font-black tracking-tight text-white font-sans">
+                            Medi<span class="text-sky-400">Flow</span>
+                        </h1>
+                        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase tracking-widest bg-emerald-950 text-emerald-400 border border-emerald-800/80 font-mono">
+                            NABH ACCREDITED
+                        </span>
+                        <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-navy-800 text-slate-300 border border-navy-700">
+                            Central OPD Waiting Display
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5 flex items-center space-x-2">
+                        <span>Multi-Speciality Hospital & Research Center</span>
+                        <span>&bull;</span>
+                        <span class="text-slate-300 font-semibold" id="header-date">{{ today|date:"l, d F Y" }}</span>
+                    </p>
+                </div>
             </div>
 
-            <div class="text-right">
-                <div id="tv-clock" class="text-3xl font-black font-mono tracking-wider text-sky-300">00:00:00</div>
-                <div class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Standard Hospital Time</div>
+            <!-- Right: Interactive Controls & Hospital Standard Clock -->
+            <div class="flex items-center space-x-5">
+                
+                <!-- Audio Synthesis Chime Controller -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="testChimeAndSpeech()" title="Click to test airport/hospital voice chime"
+                            class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 border border-navy-700 text-sky-300 text-xs font-bold transition flex items-center space-x-2 shadow-sm">
+                        <i class="fa-solid fa-bell text-sky-400 animate-bounce"></i>
+                        <span id="chime-btn-label">Test Audio Chime</span>
+                    </button>
+                    <button onclick="toggleAudio()" id="audio-toggle-btn"
+                            class="w-9 h-9 rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-400 hover:text-white flex items-center justify-center text-xs transition" title="Toggle Sound Announcement">
+                        <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+                    </button>
+                </div>
+
+                <!-- Fullscreen TV mode button -->
+                <button onclick="toggleFullScreen()" class="w-9 h-9 rounded-xl bg-navy-800 hover:bg-navy-700 border border-navy-700 text-slate-300 hover:text-white flex items-center justify-center text-xs transition" title="Toggle Fullscreen (F11)">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+
+                <!-- High-Precision Digital Hospital Clock -->
+                <div class="text-right pl-3 border-l border-navy-800">
+                    <div id="live-clock" class="text-3xl lg:text-4xl font-black font-mono tracking-wider text-sky-300 drop-shadow">
+                        00:00:00
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-widest font-mono flex items-center justify-end space-x-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>Hospital Standard Time</span>
+                    </div>
+                </div>
+
             </div>
         </div>
     </header>
 
-    <!-- Department Selector Filter Pills -->
-    <div class="flex items-center space-x-2 my-5 overflow-x-auto pb-2 scrollbar-none">
-        <a href="{% url 'queue_display' %}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition whitespace-nowrap
-           {% if not selected_dept %}bg-gradient-to-r from-sky-500 to-teal-400 text-slate-950 shadow-lg shadow-sky-500/20{% else %}bg-tv-panel text-slate-400 hover:text-white border border-tv-border{% endif %}">
-           <i class="fa-solid fa-hospital mr-1.5"></i> All Clinical Wings
-        </a>
-        {% for dept in departments %}
-        <a href="{% url 'queue_display_dept' dept.code %}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition whitespace-nowrap
-           {% if selected_dept and selected_dept.code == dept.code %}bg-gradient-to-r from-sky-500 to-teal-400 text-slate-950 shadow-lg shadow-sky-500/20{% else %}bg-tv-panel text-slate-400 hover:text-white border border-tv-border{% endif %}">
-           {{ dept.name }} ({{ dept.code }})
-        </a>
-        {% endfor %}
+    <!-- Urgent Calling Alert Banner (Triggers dynamically when a new token is engaged) -->
+    <div id="calling-banner" class="hidden bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 text-slate-950 px-6 py-3 font-bold text-center shadow-neon-emerald transition-all duration-500">
+        <div class="max-w-7xl mx-auto flex items-center justify-center space-x-3 text-sm sm:text-base">
+            <i class="fa-solid fa-bullhorn text-xl animate-bounce"></i>
+            <span id="calling-text" class="tracking-wide">
+                ATTENTION: Token CARD-001 (Rahul Verma) please proceed to Consultation Cabin Room 201 (Cardiology)
+            </span>
+            <i class="fa-solid fa-arrow-right text-lg"></i>
+        </div>
     </div>
 
-    <!-- Main Live Screen Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
-        
-        <!-- NOW SERVING IN CABIN (HERO PROMINENT SECTION - 7 COLS) -->
-        <div class="lg:col-span-7 flex flex-col">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-base font-extrabold text-emerald-400 flex items-center tracking-wide">
-                    <i class="fa-solid fa-bullhorn mr-2.5 text-emerald-400 animate-bounce"></i> NOW CONSULTING IN CABIN
-                </h2>
-                <span class="text-xs text-slate-500 font-medium">Proceed directly to cabin when your token is called</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                {% for app in engaged_tokens %}
-                <div class="bg-gradient-to-br from-[#0c1527] to-[#111f38] border-2 border-emerald-500/80 rounded-3xl p-6 shadow-2xl shadow-emerald-950/60 flex flex-col justify-between relative overflow-hidden group">
-                    <!-- Subtle background token sequence watermark -->
-                    <div class="absolute -right-4 -bottom-6 text-slate-800/20 text-8xl font-black font-mono select-none pointer-events-none">
-                        {{ app.token_sequence }}
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-start">
-                            <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 shadow-sm flex items-center">
-                                <span class="w-1.5 h-1.5 rounded-full bg-slate-950 mr-1.5 animate-ping"></span>
-                                PLEASE ENTER
-                            </span>
-                            <span class="text-emerald-400 text-xs font-bold font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800">
-                                {{ app.department.name }}
-                            </span>
-                        </div>
-
-                        <!-- Big High-Contrast Token -->
-                        <div class="my-5 text-center">
-                            <span class="text-5xl sm:text-6xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-sky-300 drop-shadow">
-                                {{ app.token_number }}
-                            </span>
-                            <h3 class="text-xl font-black text-white mt-2">{{ app.patient.full_name }}</h3>
-                            <p class="text-xs text-slate-400 font-mono mt-0.5">UHID: {{ app.patient.uhid }}</p>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-tv-border flex items-center justify-between text-xs">
-                        <div>
-                            <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Consultant</span>
-                            <span class="font-bold text-slate-200">{{ app.doctor }}</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Assigned Room</span>
-                            <span class="font-black text-emerald-400 text-sm font-mono px-2.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 shadow">
-                                {{ app.doctor.room_number }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-span-2 bg-tv-panel/50 border border-tv-border rounded-3xl p-12 flex flex-col items-center justify-center text-center">
-                    <div class="w-16 h-16 rounded-2xl bg-tv-panel text-slate-500 flex items-center justify-center text-2xl mb-3 border border-tv-border">
-                        <i class="fa-solid fa-stethoscope"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-300">Doctors Currently Reviewing Patient Records</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-sm">Upcoming tokens will be announced momentarily. Please remain seated in the waiting lobby.</p>
-                </div>
-                {% endfor %}
-            </div>
+    <!-- Department Selector Filter Bar -->
+    <div class="px-6 lg:px-10 py-3 bg-navy-950 border-b border-navy-850 flex items-center justify-between overflow-x-auto gap-4">
+        <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2 shrink-0">
+                <i class="fa-solid fa-filter text-sky-400 mr-1"></i> Filter Wing:
+            </span>
+            <a href="{% url 'queue_display' %}" 
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition whitespace-nowrap
+               {% if not selected_dept %}bg-gradient-to-r from-sky-500 to-teal-400 text-slate-950 font-black shadow-sm{% else %}bg-navy-900 text-slate-400 hover:text-white border border-navy-800{% endif %}">
+               All Clinical Wings
+            </a>
+            {% for dept in departments %}
+            <a href="{% url 'queue_display_dept' dept.code %}" 
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition whitespace-nowrap
+               {% if selected_dept and selected_dept.code == dept.code %}bg-gradient-to-r from-sky-500 to-teal-400 text-slate-950 font-black shadow-sm{% else %}bg-navy-900 text-slate-400 hover:text-white border border-navy-800{% endif %}">
+               {{ dept.name }} ({{ dept.code }})
+            </a>
+            {% endfor %}
         </div>
 
-        <!-- UPCOMING TOKENS IN WAITING (5 COLS) -->
-        <div class="lg:col-span-5 flex flex-col">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-base font-extrabold text-amber-400 flex items-center tracking-wide">
-                    <i class="fa-solid fa-clock-rotate-left mr-2.5 text-amber-400"></i> NEXT IN LINE (WAITING)
-                </h2>
-                <span class="text-xs text-slate-500 font-medium">{{ waiting_tokens.count }} Patients in Lobby</span>
-            </div>
+        <div class="hidden xl:flex items-center space-x-3 text-xs text-slate-400 shrink-0">
+            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Cabin In-Consultation</span>
+            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 mr-1.5"></span> Cabin Ready / Available</span>
+            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Patients Queued</span>
+        </div>
+    </div>
 
-            <div class="bg-tv-panel border border-tv-border rounded-3xl p-4 flex-1 flex flex-col justify-between overflow-hidden shadow-2xl">
-                <div class="space-y-2.5 overflow-y-auto max-h-[520px] pr-1">
-                    {% for app in waiting_tokens %}
-                    <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between hover:border-amber-500/60 transition group">
-                        <div class="flex items-center space-x-3">
-                            <span class="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-black text-base flex items-center justify-center shadow-inner">
-                                {{ app.token_number }}
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-bold text-white group-hover:text-amber-300 transition">{{ app.patient.full_name }}</h4>
-                                <p class="text-xs text-slate-400 font-medium">{{ app.department.name }} &bull; {{ app.doctor }}</p>
+    <!-- Main OPD Waiting Matrix Container -->
+    <main class="flex-1 px-6 lg:px-10 py-6 max-w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT 8 COLS: CONSULTATION CABINS MATRIX (High-Impact Room Cards) -->
+            <div class="lg:col-span-8 space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-base font-extrabold uppercase tracking-wider text-slate-300 flex items-center">
+                        <i class="fa-solid fa-door-open text-sky-400 mr-2.5 text-lg"></i>
+                        Consultation Cabins & Real-Time OPD Matrix
+                    </h2>
+                    <span class="text-xs font-mono text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800/80">
+                        <i class="fa-solid fa-arrows-rotate mr-1.5 animate-spin"></i> Live Network Feed Active
+                    </span>
+                </div>
+
+                <!-- Cabins Grid (2x2 or 2x3 responsive cards) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="cabins-container">
+                    {% for cabin in cabins %}
+                    <div class="cabin-card bg-gradient-to-br from-navy-900 to-navy-850 rounded-3xl border-2 {% if cabin.current %}border-emerald-500/80 active-cabin-pulse shadow-neon-emerald{% else %}border-navy-700/80 shadow-lg{% endif %} p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden group">
+                        
+                        <!-- Top Cabin Header -->
+                        <div>
+                            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="px-3 py-1 rounded-xl bg-sky-500/15 text-sky-300 font-mono font-extrabold text-sm border border-sky-400/30">
+                                        {{ cabin.doctor.room_number }}
+                                    </span>
+                                    <span class="text-xs font-bold text-slate-400">
+                                        Floor {{ cabin.doctor.department.floor_number }} &bull; {{ cabin.doctor.department.name }}
+                                    </span>
+                                </div>
+                                
+                                {% if cabin.current %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 shadow-sm flex items-center">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-950 mr-1.5 animate-ping"></span>
+                                    IN CONSULTATION
+                                </span>
+                                {% else %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                                    CABIN READY
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Doctor Information -->
+                            <div class="mt-3.5 flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-navy-800 border border-navy-700 text-sky-400 flex items-center justify-center text-base font-bold shadow-inner">
+                                    <i class="fa-solid fa-user-doctor"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-extrabold text-white leading-tight">
+                                        Dr. {{ cabin.doctor.user.get_full_name|default:cabin.doctor.user.username }}
+                                    </h3>
+                                    <p class="text-xs text-slate-400 font-medium">
+                                        {{ cabin.doctor.specialization }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Currently Consulting Token (HERO NUMBER) -->
+                            <div class="my-6 p-4 rounded-2xl bg-navy-950/80 border border-navy-800 text-center relative overflow-hidden">
+                                {% if cabin.current %}
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">
+                                    NOW CONSULTING
+                                </span>
+                                <div class="text-5xl font-black font-mono tracking-tight text-emerald-400 token-active-glow">
+                                    {{ cabin.current.token_number }}
+                                </div>
+                                <h4 class="text-lg font-bold text-white mt-1.5 truncate">{{ cabin.current.patient.full_name }}</h4>
+                                <span class="text-xs text-slate-400 font-mono">UHID: {{ cabin.current.patient.uhid }}</span>
+                                {% else %}
+                                <div class="py-4">
+                                    <span class="text-2xl font-bold text-slate-500 font-mono tracking-wide block">
+                                        -- NO ACTIVE TOKEN --
+                                    </span>
+                                    <span class="text-xs text-slate-400 mt-1 block">
+                                        Cabin is ready. Next patient will be called shortly.
+                                    </span>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                                {{ app.doctor.room_number }}
+
+                        <!-- Bottom Waiting Line for this Cabin -->
+                        <div class="pt-3 border-t border-navy-800/80 flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Next in Line:</span>
+                                <div class="flex items-center space-x-1.5">
+                                    {% for next_app in cabin.waiting %}
+                                    <span class="px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 font-mono font-bold text-xs border border-amber-500/30">
+                                        {{ next_app.token_number }}
+                                    </span>
+                                    {% empty %}
+                                    <span class="text-slate-500 italic text-[11px]">No line</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-mono font-bold text-slate-400">
+                                {{ cabin.waiting_count }} in queue
                             </span>
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-16 text-slate-500 text-xs">
-                        <i class="fa-solid fa-check text-slate-600 text-2xl mb-2 block"></i>
-                        No upcoming patients in waiting queue.
+
                     </div>
                     {% endfor %}
                 </div>
+            </div>
 
-                <!-- Footer Ticker -->
-                <div class="mt-4 pt-3 border-t border-tv-border text-xs text-slate-400 flex items-center justify-between">
-                    <span class="flex items-center text-sky-400 font-semibold text-[11px]">
-                        <i class="fa-solid fa-arrows-rotate mr-1.5 animate-spin"></i> Screen refreshes automatically
-                    </span>
-                    <a href="{% url 'dashboard' %}" class="text-[11px] text-slate-400 hover:text-white transition">
-                        Exit to Dashboard &rarr;
-                    </a>
+
+            <!-- RIGHT 4 COLS: UPCOMING QUEUE ROSTER & RECENT DISCHARGES -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- Upcoming Patient Token Line -->
+                <div class="bg-navy-900 rounded-3xl border border-navy-800 p-5 shadow-card">
+                    <div class="flex items-center justify-between pb-3 border-b border-navy-800 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Upcoming Waiting Line</h3>
+                                <p class="text-[11px] text-slate-400">Please remain in waiting hall</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-amber-950 text-amber-300 font-mono font-bold text-xs rounded-full border border-amber-800">
+                            {{ waiting_tokens.count }} QUEUED
+                        </span>
+                    </div>
+
+                    <!-- Scrollable Waiting List -->
+                    <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1" id="waiting-list">
+                        {% for app in waiting_tokens %}
+                        <div class="p-3 rounded-2xl bg-navy-850/80 border border-navy-800 flex items-center justify-between hover:border-amber-500/50 transition group">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-12 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-black text-sm flex items-center justify-center">
+                                    {{ app.token_number }}
+                                </span>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white group-hover:text-amber-300 transition">{{ app.patient.full_name }}</h4>
+                                    <p class="text-[11px] text-slate-400">{{ app.department.name }} &bull; {{ app.doctor }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="px-2 py-0.5 rounded-md bg-navy-900 text-slate-300 font-mono font-bold text-[10px] border border-navy-700">
+                                    {{ app.doctor.room_number }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-10 text-slate-500 text-xs">
+                            <i class="fa-solid fa-check-circle text-emerald-500 text-2xl mb-1.5 block"></i>
+                            Waiting lobby is currently clear.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Recently Consulted Tokens -->
+                <div class="bg-navy-900/70 rounded-3xl border border-navy-800 p-5 text-xs">
+                    <div class="flex items-center justify-between pb-2 border-b border-navy-800 mb-3">
+                        <span class="font-bold uppercase tracking-wider text-slate-400 text-[11px] flex items-center">
+                            <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i> Recently Completed
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-500">Live Stream</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2" id="completed-grid">
+                        {% for comp in completed_tokens %}
+                        <div class="p-2.5 rounded-xl bg-navy-850/60 border border-navy-800 flex items-center justify-between">
+                            <span class="font-mono font-bold text-slate-300">{{ comp.token_number }}</span>
+                            <span class="text-[10px] text-emerald-400 font-semibold truncate max-w-[80px]">{{ comp.patient.full_name }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-2 text-center py-4 text-slate-500 text-xs">
+                            No completed tokens yet today.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Bottom Healthcare Information Marquee Ticker -->
+    <footer class="bg-navy-900 border-t border-navy-800 py-3 px-6 overflow-hidden sticky bottom-0 z-40">
+        <div class="flex items-center">
+            <div class="flex items-center space-x-2 bg-sky-950 text-sky-400 px-3 py-1 rounded-xl text-xs font-bold border border-sky-800 shrink-0 z-10 mr-4">
+                <i class="fa-solid fa-bullhorn text-xs animate-pulse"></i>
+                <span class="uppercase tracking-wider">Hospital Notices</span>
+            </div>
+            <div class="overflow-hidden relative w-full text-xs font-medium text-slate-300">
+                <div class="animate-marquee space-x-12">
+                    <span>🏥 <strong>Welcome to MediFlow Multispeciality:</strong> Please keep your printed token slip with UHID ready when your number is called.</span>
+                    <span>&bull;</span>
+                    <span>💊 <strong>Central Hospital Pharmacy:</strong> Located on the Ground Floor, Counter 3 for instant electronic prescription pickup.</span>
+                    <span>&bull;</span>
+                    <span>🧪 <strong>Diagnostic Laboratory:</strong> Fast automated blood draws and diagnostic imaging on Floor 1, Wing B.</span>
+                    <span>&bull;</span>
+                    <span>🚨 <strong>24/7 Emergency Triage:</strong> Dial Extension 100 or call toll-free 1800-MEDIFLOW for urgent medical assistance.</span>
+                    <span>&bull;</span>
+                    <span>🧼 <strong>Sanitization Protocol:</strong> Please use automatic hand sanitizing stations located near all elevator banks.</span>
                 </div>
             </div>
         </div>
+    </footer>
 
-    </div>
-
-    <!-- Speech Synthesizer Script -->
+    <!-- Comprehensive Audio Synthesizer, Web Audio Chime & Seamless Polling Script -->
     <script>
+        // 1. Digital Clock
         function updateClock() {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('tv-clock').textContent = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('live-clock').textContent = `${hours}:${minutes}:${seconds}`;
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        let voiceEnabled = true;
-        function toggleSpeech() {
-            voiceEnabled = !voiceEnabled;
-            const status = document.getElementById('audio-status');
-            status.textContent = voiceEnabled ? "Voice Calling Active" : "Voice Calling Muted";
+        // 2. Fullscreen Toggle
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
         }
 
-        // Announce current engaged token on page load if synthesis supported
-        window.addEventListener('DOMContentLoaded', () => {
-            const firstToken = document.querySelector('.drop-shadow');
-            if (firstToken && 'speechSynthesis' in window && voiceEnabled) {
-                const tokenText = firstToken.textContent.trim();
-                const utter = new SpeechSynthesisUtterance(`Token ${tokenText}, please enter consultation room.`);
-                utter.rate = 0.9;
-                utter.pitch = 1.0;
-                // Optional voice trigger (commented or low volume so it doesn't disturb automatically)
+        // 3. Web Audio API Airport/Hospital Dual-Tone Chime Synthesizer
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function playHospitalChime() {
+            if (!audioEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+                // Note 1: 520Hz (C5/E5 tone)
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now);
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.6);
+
+                // Note 2: 659Hz (E5 tone) plays 0.3s later
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(659.25, now + 0.28);
+                gain2.gain.setValueAtTime(0.35, now + 0.28);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(now + 0.28);
+                osc2.stop(now + 1.2);
+            } catch (err) {
+                console.log("AudioContext blocked until user interaction", err);
             }
-        });
+        }
+
+        function speakAnnouncement(token, room, dept) {
+            if (!audioEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel(); // cancel any pending speech
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(`Token ${token}. Please proceed to ${room}, ${dept}.`);
+                utterance.rate = 0.88;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }, 600);
+        }
+
+        function testChimeAndSpeech() {
+            playHospitalChime();
+            speakAnnouncement("CARD 0 0 1", "Room 201", "Cardiology");
+            showCallingBanner("CARD-001", "Rahul Verma", "Room 201", "Cardiology");
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audio-icon');
+            const label = document.getElementById('chime-btn-label');
+            if (audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                label.textContent = 'Audio Chime Active';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-rose-400';
+                label.textContent = 'Audio Muted';
+            }
+        }
+
+        function showCallingBanner(token, patient, room, dept) {
+            const banner = document.getElementById('calling-banner');
+            const text = document.getElementById('calling-text');
+            text.innerHTML = `ATTENTION: Token <span class="underline font-black font-mono">${token}</span> (${patient}) please proceed to <span class="underline font-black">${room}</span> (${dept})`;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 10000);
+        }
+
+        // 4. Asynchronous Background Polling (No full page reload)
+        let lastEngagedIds = new Set();
+        {% for app in engaged_tokens %}
+        lastEngagedIds.add("{{ app.id }}");
+        {% endfor %}
+
+        async function pollQueueData() {
+            try {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('format', 'json');
+                const res = await fetch(currentUrl.toString());
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // Check if new patient was called
+                if (data.engaged && data.engaged.length > 0) {
+                    data.engaged.forEach(item => {
+                        if (!lastEngagedIds.has(String(item.id))) {
+                            // NEW PATIENT CALLED! Ring chime and speak!
+                            lastEngagedIds.add(String(item.id));
+                            playHospitalChime();
+                            speakAnnouncement(item.token, item.room, item.dept);
+                            showCallingBanner(item.token, item.patient, item.room, item.dept);
+                        }
+                    });
+                }
+
+                // Smoothly update Waiting List
+                if (data.waiting) {
+                    const waitingList = document.getElementById('waiting-list');
+                    if (data.waiting.length === 0) {
+                        waitingList.innerHTML = `<div class="text-center py-10 text-slate-500 text-xs"><i class="fa-solid fa-check-circle text-emerald-500 text-2xl mb-1.5 block"></i>Waiting lobby is currently clear.</div>`;
+                    } else {
+                        let html = '';
+                        data.waiting.forEach(app => {
+                            html += `
+                            <div class="p-3 rounded-2xl bg-navy-850/80 border border-navy-800 flex items-center justify-between hover:border-amber-500/50 transition group">
+                                <div class="flex items-center space-x-3">
+                                    <span class="w-12 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-black text-sm flex items-center justify-center">
+                                        ${app.token}
+                                    </span>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white group-hover:text-amber-300 transition">${app.patient}</h4>
+                                        <p class="text-[11px] text-slate-400">${app.dept} &bull; ${app.doctor}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-2 py-0.5 rounded-md bg-navy-900 text-slate-300 font-mono font-bold text-[10px] border border-navy-700">
+                                        ${app.room}
+                                    </span>
+                                </div>
+                            </div>`;
+                        });
+                        waitingList.innerHTML = html;
+                    }
+                }
+            } catch (e) {
+                console.error("Polling error", e);
+            }
+        }
+
+        // Poll every 4 seconds for immediate updates
+        setInterval(pollQueueData, 4000);
     </script>
 </body>
 </html>

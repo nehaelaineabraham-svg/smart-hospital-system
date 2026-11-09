@@ -12,8 +12,8 @@ from billing.models import Invoice
 
 def queue_display(request, dept_code=None):
     """
-    Lobby / Reception TV Waiting Screen.
-    Auto-updates to show who is currently being consulted and who is next.
+    Enterprise-Grade OPD Waiting Room TV Display & Signage.
+    Supports both full HTML render and lightweight JSON polling.
     """
     today = datetime.date.today()
     departments = Department.objects.filter(is_active=True)
@@ -22,12 +22,73 @@ def queue_display(request, dept_code=None):
     if dept_code:
         selected_dept = get_object_or_404(Department, code=dept_code)
         appointments = Appointment.objects.filter(department=selected_dept, appointment_date=today)
+        doctors = Doctor.objects.filter(department=selected_dept, is_available=True).select_related('user', 'department')
     else:
         appointments = Appointment.objects.filter(appointment_date=today)
+        doctors = Doctor.objects.filter(is_available=True).select_related('user', 'department')
 
     engaged_tokens = appointments.filter(status=Appointment.STATUS_ENGAGED).select_related('doctor', 'patient', 'department')
     waiting_tokens = appointments.filter(status__in=[Appointment.STATUS_IN_WAITING, Appointment.STATUS_CHECKED_IN]).select_related('doctor', 'patient', 'department').order_by('token_sequence')
-    completed_tokens = appointments.filter(status=Appointment.STATUS_CONSULTED).select_related('doctor', 'patient')[:5]
+    completed_tokens = appointments.filter(status=Appointment.STATUS_CONSULTED).select_related('doctor', 'patient').order_by('-id')[:6]
+
+    # Build cabin matrix: status for each doctor/cabin
+    cabins = []
+    for doc in doctors:
+        current = appointments.filter(doctor=doc, status=Appointment.STATUS_ENGAGED).first()
+        waiting = appointments.filter(doctor=doc, status__in=[Appointment.STATUS_IN_WAITING, Appointment.STATUS_CHECKED_IN]).order_by('token_sequence')[:3]
+        cabins.append({
+            'doctor': doc,
+            'current': current,
+            'waiting': list(waiting),
+            'waiting_count': appointments.filter(doctor=doc, status__in=[Appointment.STATUS_IN_WAITING, Appointment.STATUS_CHECKED_IN]).count(),
+        })
+
+    # If requested via JSON API (for smooth live background polling without page flickering)
+    if request.GET.get('format') == 'json':
+        data = {
+            'timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
+            'engaged': [
+                {
+                    'id': a.id,
+                    'token': a.token_number,
+                    'patient': a.patient.full_name,
+                    'doctor': f"Dr. {a.doctor.user.get_full_name() or a.doctor.user.username}",
+                    'dept': a.department.name,
+                    'room': a.doctor.room_number,
+                    'floor': a.department.floor_number,
+                } for a in engaged_tokens
+            ],
+            'waiting': [
+                {
+                    'token': a.token_number,
+                    'patient': a.patient.full_name,
+                    'doctor': f"Dr. {a.doctor.user.last_name or a.doctor.user.username}",
+                    'dept': a.department.name,
+                    'room': a.doctor.room_number,
+                } for a in waiting_tokens
+            ],
+            'completed': [
+                {
+                    'token': a.token_number,
+                    'patient': a.patient.full_name,
+                } for a in completed_tokens
+            ],
+            'cabins': [
+                {
+                    'doctor_name': f"Dr. {c['doctor'].user.get_full_name() or c['doctor'].user.username}",
+                    'specialization': c['doctor'].specialization,
+                    'dept_name': c['doctor'].department.name,
+                    'dept_code': c['doctor'].department.code,
+                    'room': c['doctor'].room_number,
+                    'floor': c['doctor'].department.floor_number,
+                    'current_token': c['current'].token_number if c['current'] else None,
+                    'current_patient': c['current'].patient.full_name if c['current'] else None,
+                    'waiting_tokens': [w.token_number for w in c['waiting']],
+                    'waiting_count': c['waiting_count'],
+                } for c in cabins
+            ]
+        }
+        return JsonResponse(data)
 
     context = {
         'departments': departments,
@@ -35,6 +96,7 @@ def queue_display(request, dept_code=None):
         'engaged_tokens': engaged_tokens,
         'waiting_tokens': waiting_tokens,
         'completed_tokens': completed_tokens,
+        'cabins': cabins,
         'today': today,
     }
     return render(request, 'opd/queue_display.html', context)
