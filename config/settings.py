@@ -19,6 +19,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.openshiftapps.com',
+    'https://*.openshift.com',
+    'http://*.apps.*',
+    'https://*.apps.*',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8080',
+    'http://localhost:8080',
+]
+
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
@@ -48,6 +59,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Whitenoise production static file serving (used on OpenShift container deployment)
+try:
+    import whitenoise
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+except ImportError:
+    pass
 
 ROOT_URLCONF = 'config.urls'
 

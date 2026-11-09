@@ -1,0 +1,28 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Static & Media root during deployment
+staticfiles/
+media/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# IDE / OS specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
