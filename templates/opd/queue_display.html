@@ -150,25 +150,25 @@
             <!-- Right: Interactive Controls & Real-Time Hospital Clock -->
             <div class="flex items-center space-x-4">
                 
+                <!-- Dynamic Token Audio Chime Tester -->
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="testChimeAndSpeech()" id="test-chime-btn" title="Click to test airport/hospital voice chime - changes token each time"
+                            class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-2 bg-card-inner text-sky-400 hover:border-sky-500/50 shadow-sm group">
+                        <i class="fa-solid fa-volume-high animate-pulse text-xs group-hover:scale-110 transition-transform"></i>
+                        <span id="test-chime-label">Test Audio Chime</span>
+                    </button>
+                    <button onclick="toggleAudio()" id="audio-toggle-btn"
+                            class="w-8 h-8 rounded-xl border flex items-center justify-center text-xs transition bg-card-inner text-emerald-400" title="Toggle Sound Announcement">
+                        <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+                    </button>
+                </div>
+
                 <!-- Theme Switcher (Dark Mode / Clinical White Mode) -->
                 <button onclick="toggleTheme()" id="theme-btn"
                         class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1.5 bg-card-inner" title="Switch between Dark Lounge and Clinical White display">
                     <i class="fa-solid fa-moon text-amber-400" id="theme-icon"></i>
                     <span id="theme-label">Dark TV</span>
                 </button>
-
-                <!-- Audio Synthesis Chime Controller -->
-                <div class="flex items-center space-x-1.5">
-                    <button onclick="testChimeAndSpeech()" title="Click to test airport/hospital voice chime"
-                            class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-2 bg-card-inner text-sky-400">
-                        <i class="fa-solid fa-bell animate-bounce text-xs"></i>
-                        <span>Test Chime</span>
-                    </button>
-                    <button onclick="toggleAudio()" id="audio-toggle-btn"
-                            class="w-8 h-8 rounded-xl border flex items-center justify-center text-xs transition bg-card-inner text-emerald-400" title="Toggle Voice Announcements">
-                        <i class="fa-solid fa-volume-high" id="audio-icon"></i>
-                    </button>
-                </div>
 
                 <!-- Fullscreen TV mode button -->
                 <button onclick="toggleFullScreen()" class="w-8 h-8 rounded-xl border flex items-center justify-center text-xs transition bg-card-inner" title="Toggle Fullscreen (F11)">
@@ -291,9 +291,20 @@
                             <!-- Currently Consulting Token Display -->
                             <div class="my-5 p-5 rounded-2xl bg-card-inner border text-center relative overflow-hidden">
                                 {% if cabin.current %}
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">
-                                    NOW CONSULTING
-                                </span>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                                        NOW CONSULTING
+                                    </span>
+                                    <!-- Speaker Icon Button to Announce This Specific Token -->
+                                    <button type="button" 
+                                            onclick="announceSpecificToken('{{ cabin.current.token_number }}', '{{ cabin.current.patient.full_name|escapejs }}', '{{ cabin.doctor.room_number|escapejs }}', '{{ cabin.doctor.department.name|escapejs }}')"
+                                            class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold transition flex items-center space-x-1"
+                                            title="Click to vocalize and announce this token">
+                                        <i class="fa-solid fa-volume-high"></i>
+                                        <span>Announce</span>
+                                    </button>
+                                </div>
+
                                 <div class="text-5xl sm:text-6xl font-black font-mono tracking-tight text-emerald-400 led-active-emerald">
                                     {{ cabin.current.token_number }}
                                 </div>
@@ -318,9 +329,12 @@
                                 <span class="text-muted font-bold uppercase text-[10px] tracking-wider shrink-0">Next in line:</span>
                                 <div class="flex items-center space-x-1.5 overflow-hidden">
                                     {% for next_app in cabin.waiting %}
-                                    <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-400 font-mono font-bold text-xs border border-amber-500/30">
+                                    <button type="button" 
+                                            onclick="announceSpecificToken('{{ next_app.token_number }}', '{{ next_app.patient.full_name|escapejs }}', '{{ cabin.doctor.room_number|escapejs }}', '{{ cabin.doctor.department.name|escapejs }}')"
+                                            title="Click to test announcing {{ next_app.token_number }}"
+                                            class="px-2.5 py-0.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-400 font-mono font-bold text-xs border border-amber-500/30 transition">
                                         {{ next_app.token_number }}
-                                    </span>
+                                    </button>
                                     {% empty %}
                                     <span class="text-muted italic text-[11px]">Queue empty</span>
                                     {% endfor %}
@@ -348,7 +362,7 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold uppercase tracking-wider">Upcoming Waiting List</h3>
-                                <p class="text-[11px] text-muted">Please watch for your token call</p>
+                                <p class="text-[11px] text-muted">Click any token to vocalize & announce</p>
                             </div>
                         </div>
                         <span class="px-2.5 py-1 bg-amber-500/15 text-amber-400 font-mono font-bold text-xs rounded-full border border-amber-500/30">
@@ -356,23 +370,32 @@
                         </span>
                     </div>
 
-                    <!-- Scrollable Waiting List with Position Badges -->
+                    <!-- Scrollable Waiting List with interactive announcer buttons -->
                     <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1" id="waiting-list">
                         {% for app in waiting_tokens %}
                         <div class="p-3 rounded-2xl bg-card-inner border flex items-center justify-between hover:border-amber-500/50 transition group">
                             <div class="flex items-center space-x-3">
-                                <span class="w-12 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-black text-sm flex items-center justify-center">
+                                <button type="button"
+                                        onclick="announceSpecificToken('{{ app.token_number }}', '{{ app.patient.full_name|escapejs }}', '{{ app.doctor.room_number|escapejs }}', '{{ app.department.name|escapejs }}')"
+                                        title="Click to vocalize and announce this token"
+                                        class="w-12 h-10 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-mono font-black text-sm flex items-center justify-center transition">
                                     {{ app.token_number }}
-                                </span>
+                                </button>
                                 <div>
                                     <h4 class="text-xs font-bold group-hover:text-amber-400 transition">{{ app.patient.full_name }}</h4>
                                     <p class="text-[11px] text-muted">{{ app.department.name }} &bull; {{ app.doctor }}</p>
                                 </div>
                             </div>
-                            <div class="text-right">
+                            <div class="flex items-center space-x-2">
                                 <span class="px-2 py-0.5 rounded-md bg-surface text-muted font-mono font-bold text-[10px] border">
                                     {{ app.doctor.room_number }}
                                 </span>
+                                <button type="button"
+                                        onclick="announceSpecificToken('{{ app.token_number }}', '{{ app.patient.full_name|escapejs }}', '{{ app.doctor.room_number|escapejs }}', '{{ app.department.name|escapejs }}')"
+                                        class="w-7 h-7 rounded-lg bg-surface hover:bg-amber-500/20 text-muted hover:text-amber-400 border flex items-center justify-center text-[10px] transition"
+                                        title="Play audio announcement for {{ app.token_number }}">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
                             </div>
                         </div>
                         {% empty %}
@@ -450,7 +473,7 @@
         </div>
     </footer>
 
-    <!-- Comprehensive Audio Synthesizer, Web Audio Chime, Theme & Seamless Polling Script -->
+    <!-- Comprehensive Dynamic Audio Synthesizer, Web Audio Chime, Theme & Polling Script -->
     <script>
         // 1. Digital Clock
         function updateClock() {
@@ -482,7 +505,6 @@
                 localStorage.setItem('mediflow_theme', 'dark');
             }
         }
-        // Load saved theme preference
         if (localStorage.getItem('mediflow_theme') === 'light') {
             toggleTheme();
         }
@@ -498,10 +520,43 @@
             }
         }
 
-        // 4. Web Audio API Airport/Hospital Dual-Tone Chime Synthesizer
+        // 4. Dynamic Token Roster & Phonetic Speech Engine
+        let tokenRoster = [
+            {% for app in engaged_tokens %}
+            {
+                token: "{{ app.token_number }}",
+                patient: "{{ app.patient.full_name|escapejs }}",
+                room: "{{ app.doctor.room_number|escapejs }}",
+                dept: "{{ app.department.name|escapejs }}",
+                status: "Engaged"
+            },
+            {% endfor %}
+            {% for app in waiting_tokens %}
+            {
+                token: "{{ app.token_number }}",
+                patient: "{{ app.patient.full_name|escapejs }}",
+                room: "{{ app.doctor.room_number|escapejs }}",
+                dept: "{{ app.department.name|escapejs }}",
+                status: "Waiting"
+            },
+            {% endfor %}
+        ];
+
+        // Fallback demo tokens if the roster is initially empty
+        if (tokenRoster.length === 0) {
+            tokenRoster = [
+                { token: "CARD-001", patient: "Rahul Verma", room: "Room 201", dept: "Cardiology" },
+                { token: "GEN-001", patient: "Priya Nair", room: "Room 102", dept: "General Medicine" },
+                { token: "NEUR-001", patient: "Suresh Chandra", room: "Room 205", dept: "Neurology" },
+                { token: "ORTH-001", patient: "Vikram Patel", room: "Room 108", dept: "Orthopedics" },
+            ];
+        }
+
         let audioEnabled = true;
         let audioCtx = null;
+        let currentTestTokenIndex = 0;
 
+        // Calibrated Airport/Hospital 3-Tone Melodic Chime (C5 -> E5 -> G5)
         function playHospitalChime() {
             if (!audioEnabled) return;
             try {
@@ -513,49 +568,107 @@
                 }
 
                 const now = audioCtx.currentTime;
-                // Note 1: 523.25Hz (C5 tone)
+
+                // Tone 1: 523.25Hz (C5)
                 const osc1 = audioCtx.createOscillator();
                 const gain1 = audioCtx.createGain();
                 osc1.type = 'sine';
                 osc1.frequency.setValueAtTime(523.25, now);
-                gain1.gain.setValueAtTime(0.3, now);
-                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                gain1.gain.setValueAtTime(0.28, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
                 osc1.connect(gain1);
                 gain1.connect(audioCtx.destination);
                 osc1.start(now);
-                osc1.stop(now + 0.6);
+                osc1.stop(now + 0.55);
 
-                // Note 2: 659.25Hz (E5 tone) plays 0.28s later
+                // Tone 2: 659.25Hz (E5) at 0.22s
                 const osc2 = audioCtx.createOscillator();
                 const gain2 = audioCtx.createGain();
                 osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(659.25, now + 0.28);
-                gain2.gain.setValueAtTime(0.35, now + 0.28);
-                gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                osc2.frequency.setValueAtTime(659.25, now + 0.22);
+                gain2.gain.setValueAtTime(0.32, now + 0.22);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
                 osc2.connect(gain2);
                 gain2.connect(audioCtx.destination);
-                osc2.start(now + 0.28);
-                osc2.stop(now + 1.2);
+                osc2.start(now + 0.22);
+                osc2.stop(now + 0.85);
+
+                // Tone 3: 783.99Hz (G5) at 0.44s
+                const osc3 = audioCtx.createOscillator();
+                const gain3 = audioCtx.createGain();
+                osc3.type = 'sine';
+                osc3.frequency.setValueAtTime(783.99, now + 0.44);
+                gain3.gain.setValueAtTime(0.35, now + 0.44);
+                gain3.gain.exponentialRampToValueAtTime(0.001, now + 1.25);
+                osc3.connect(gain3);
+                gain3.connect(audioCtx.destination);
+                osc3.start(now + 0.44);
+                osc3.stop(now + 1.25);
             } catch (err) {
                 console.log("AudioContext blocked until user interaction", err);
             }
         }
 
-        function speakAnnouncement(token, room, dept) {
+        // Phonetic tokenizer for speech: e.g. "CARD-001" -> "C A R D, 0 0 1"
+        function phoneticizeToken(token) {
+            if (!token) return "";
+            const parts = token.split('-');
+            if (parts.length === 2) {
+                const letters = parts[0].split('').join(' ');
+                const digits = parts[1].split('').join(' ');
+                return `${letters}, ${digits}`;
+            }
+            return token.split('').join(' ');
+        }
+
+        function speakAnnouncement(token, patient, room, dept) {
             if (!audioEnabled || !('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
+            
             setTimeout(() => {
-                const utterance = new SpeechSynthesisUtterance(`Token ${token}. Please proceed to ${room}, ${dept}.`);
+                const spokenToken = phoneticizeToken(token);
+                const message = `Attention please. Token ${spokenToken}, ${patient}. Please proceed to ${room}, ${dept}.`;
+                const utterance = new SpeechSynthesisUtterance(message);
                 utterance.rate = 0.88;
                 utterance.pitch = 1.0;
                 window.speechSynthesis.speak(utterance);
-            }, 600);
+            }, 550);
         }
 
-        function testChimeAndSpeech() {
+        function showCallingBanner(token, patient, room, dept) {
+            const banner = document.getElementById('calling-banner');
+            const text = document.getElementById('calling-text');
+            text.innerHTML = `ATTENTION: Token <span class="underline font-black font-mono text-emerald-950">${token}</span> (${patient}) please proceed to <span class="underline font-black">${room}</span> (${dept})`;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 10000);
+        }
+
+        // Announce a specific token directly
+        function announceSpecificToken(token, patient, room, dept) {
             playHospitalChime();
-            speakAnnouncement("CARD 0 0 1", "Room 201", "Cardiology");
-            showCallingBanner("CARD-001", "Rahul Verma", "Room 201", "Cardiology");
+            speakAnnouncement(token, patient, room, dept);
+            showCallingBanner(token, patient, room, dept);
+        }
+
+        // Dynamic Test Audio Chime: Cycles through actual tokens present on screen!
+        function testChimeAndSpeech() {
+            if (!tokenRoster || tokenRoster.length === 0) {
+                tokenRoster = [{ token: "CARD-001", patient: "Rahul Verma", room: "Room 201", dept: "Cardiology" }];
+            }
+
+            const current = tokenRoster[currentTestTokenIndex % tokenRoster.length];
+            currentTestTokenIndex++;
+
+            announceSpecificToken(current.token, current.patient, current.room, current.dept);
+
+            // Update button label to reflect which token was tested & which is next
+            const nextItem = tokenRoster[currentTestTokenIndex % tokenRoster.length];
+            const label = document.getElementById('test-chime-label');
+            if (label) {
+                label.textContent = `Announced: ${current.token} (Next: ${nextItem.token})`;
+            }
         }
 
         function toggleAudio() {
@@ -568,17 +681,7 @@
             }
         }
 
-        function showCallingBanner(token, patient, room, dept) {
-            const banner = document.getElementById('calling-banner');
-            const text = document.getElementById('calling-text');
-            text.innerHTML = `ATTENTION: Token <span class="underline font-black font-mono">${token}</span> (${patient}) please proceed to <span class="underline font-black">${room}</span> (${dept})`;
-            banner.classList.remove('hidden');
-            setTimeout(() => {
-                banner.classList.add('hidden');
-            }, 10000);
-        }
-
-        // 5. Asynchronous Background Polling (No full-page reload)
+        // 5. Asynchronous Background Polling (Synchronizes with Doctor cabins)
         let lastEngagedIds = new Set();
         {% for app in engaged_tokens %}
         lastEngagedIds.add("{{ app.id }}");
@@ -592,16 +695,38 @@
                 if (!res.ok) return;
                 const data = await res.json();
 
-                // Check if new patient was called
-                if (data.engaged && data.engaged.length > 0) {
+                // Update token roster dynamically from live server data
+                const updatedRoster = [];
+                if (data.engaged) {
                     data.engaged.forEach(item => {
+                        updatedRoster.push({
+                            token: item.token,
+                            patient: item.patient,
+                            room: item.room,
+                            dept: item.dept,
+                            status: "Engaged"
+                        });
+                        
+                        // Newly called token check
                         if (!lastEngagedIds.has(String(item.id))) {
                             lastEngagedIds.add(String(item.id));
-                            playHospitalChime();
-                            speakAnnouncement(item.token, item.room, item.dept);
-                            showCallingBanner(item.token, item.patient, item.room, item.dept);
+                            announceSpecificToken(item.token, item.patient, item.room, item.dept);
                         }
                     });
+                }
+                if (data.waiting) {
+                    data.waiting.forEach(item => {
+                        updatedRoster.push({
+                            token: item.token,
+                            patient: item.patient,
+                            room: item.room,
+                            dept: item.dept,
+                            status: "Waiting"
+                        });
+                    });
+                }
+                if (updatedRoster.length > 0) {
+                    tokenRoster = updatedRoster;
                 }
 
                 // Smoothly update Waiting List
@@ -615,18 +740,27 @@
                             html += `
                             <div class="p-3 rounded-2xl bg-card-inner border flex items-center justify-between hover:border-amber-500/50 transition group">
                                 <div class="flex items-center space-x-3">
-                                    <span class="w-12 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-black text-sm flex items-center justify-center">
+                                    <button type="button"
+                                            onclick="announceSpecificToken('${app.token}', '${app.patient.replace(/'/g, "\\'")}', '${app.room.replace(/'/g, "\\'")}', '${app.dept.replace(/'/g, "\\'")}')"
+                                            title="Click to vocalize and announce this token"
+                                            class="w-12 h-10 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-mono font-black text-sm flex items-center justify-center transition">
                                         ${app.token}
-                                    </span>
+                                    </button>
                                     <div>
                                         <h4 class="text-xs font-bold group-hover:text-amber-400 transition">${app.patient}</h4>
                                         <p class="text-[11px] text-muted">${app.dept} &bull; ${app.doctor}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
+                                <div class="flex items-center space-x-2">
                                     <span class="px-2 py-0.5 rounded-md bg-surface text-muted font-mono font-bold text-[10px] border">
                                         ${app.room}
                                     </span>
+                                    <button type="button"
+                                            onclick="announceSpecificToken('${app.token}', '${app.patient.replace(/'/g, "\\'")}', '${app.room.replace(/'/g, "\\'")}', '${app.dept.replace(/'/g, "\\'")}')"
+                                            class="w-7 h-7 rounded-lg bg-surface hover:bg-amber-500/20 text-muted hover:text-amber-400 border flex items-center justify-center text-[10px] transition"
+                                            title="Play audio announcement for ${app.token}">
+                                        <i class="fa-solid fa-volume-high"></i>
+                                    </button>
                                 </div>
                             </div>`;
                         });
