@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Hospital Invoices & Billing - MediFlow{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-indigo-900">
+        <div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 uppercase tracking-wider">
+                Revenue & Invoicing Cycle
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1 text-white">
+                Consolidated Billing Desk
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">One consolidated bill uniting doctor consultations, pharmacy medicine, and lab charges</p>
+        </div>
+        <div>
+            <span class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-2">
+                <i class="fa-solid fa-receipt text-indigo-400"></i>
+                <span>Total Invoices: {{ invoices.count }}</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Invoices List Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-800">All Patient Invoices</h2>
+                <p class="text-xs text-slate-400">Review status, settle payments, and print medical receipts</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Invoice #</th>
+                        <th class="py-3 px-4">Date</th>
+                        <th class="py-3 px-4">Patient / UHID</th>
+                        <th class="py-3 px-4">Breakdown (OPD + Rx + Lab)</th>
+                        <th class="py-3 px-4">Net Payable</th>
+                        <th class="py-3 px-4">Payment Status</th>
+                        <th class="py-3 px-4 text-right">Receipt</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for inv in invoices %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900">
+                            {{ inv.invoice_number }}
+                        </td>
+                        <td class="py-3 px-4 text-slate-500">{{ inv.created_at|date:"d M Y, H:i" }}</td>
+                        <td class="py-3 px-4">
+                            <span class="font-bold text-slate-800 block">{{ inv.patient.full_name }}</span>
+                            <span class="text-slate-400 font-mono text-[11px]">{{ inv.patient.uhid }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-600 font-mono text-[11px]">
+                            OPD: ${{ inv.consultation_fee }} &bull; Rx: ${{ inv.pharmacy_fee }} &bull; Lab: ${{ inv.lab_fee }}
+                        </td>
+                        <td class="py-3 px-4 font-mono font-black text-slate-900 text-sm">
+                            ${{ inv.net_payable }}
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if inv.payment_status == 'PAID' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <i class="fa-solid fa-check mr-1"></i> Paid ({{ inv.get_payment_mode_display }})
+                            </span>
+                            {% else %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                <i class="fa-solid fa-clock mr-1"></i> Pending Payment
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{% url 'invoice_detail' inv.id %}" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold border border-indigo-200 inline-flex items-center space-x-1">
+                                <i class="fa-solid fa-file-invoice"></i>
+                                <span>View Receipt</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-8 text-slate-400">No invoices recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

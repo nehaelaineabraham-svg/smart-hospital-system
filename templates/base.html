@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MediFlow - Smart Multispeciality HMS{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            navy: '#0f172a',
+                            blue: '#0284c7',
+                            teal: '#0d9488',
+                            light: '#f8fafc',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-teal-400 flex items-center justify-center text-white shadow-md">
+                            <i class="fa-solid fa-heart-pulse text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold tracking-tight text-white">Medi<span class="text-sky-400">Flow</span></span>
+                            <span class="hidden md:inline-block text-xs uppercase tracking-widest text-teal-400 font-semibold ml-2 px-2 py-0.5 bg-slate-800 rounded">Multispeciality</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation Links -->
+                {% if user.is_authenticated %}
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-3">
+                    <a href="{% url 'dashboard' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                        <i class="fa-solid fa-chart-pie mr-1.5 text-sky-400"></i> Dashboard
+                    </a>
+                    <a href="{% url 'queue_display' %}" target="_blank" class="px-3 py-2 rounded-lg text-sm font-medium bg-sky-950/80 border border-sky-800/50 text-sky-300 hover:bg-sky-900 transition flex items-center">
+                        <span class="relative flex h-2 w-2 mr-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <i class="fa-solid fa-tv mr-1.5"></i> Lobby Queue TV
+                    </a>
+                    {% if user.is_receptionist or user.is_admin_user %}
+                    <a href="{% url 'book_appointment' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                        <i class="fa-solid fa-ticket mr-1.5 text-amber-400"></i> New Token
+                    </a>
+                    {% endif %}
+                    {% if user.is_pharmacist or user.is_admin_user %}
+                    <a href="{% url 'pharmacy_desk' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                        <i class="fa-solid fa-prescription-bottle-medical mr-1.5 text-emerald-400"></i> Pharmacy
+                    </a>
+                    {% endif %}
+                    {% if user.is_admin_user or user.is_receptionist %}
+                    <a href="{% url 'invoice_list' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1.5 text-indigo-400"></i> Billing
+                    </a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                    <a href="/admin/" target="_blank" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                        <i class="fa-solid fa-gear mr-1.5 text-slate-400"></i> Admin Panel
+                    </a>
+                    {% endif %}
+                </nav>
+
+                <!-- User Profile & Logout -->
+                <div class="flex items-center space-x-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-semibold text-white leading-tight">{{ user.get_full_name|default:user.username }}</p>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-sky-900 text-sky-300 font-medium border border-sky-700">
+                            {{ user.get_role_display }}
+                        </span>
+                    </div>
+                    <a href="{% url 'logout' %}" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition" title="Logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-lg"></i>
+                    </a>
+                </div>
+                {% else %}
+                <div>
+                    <a href="{% url 'login' %}" class="px-4 py-2 text-sm font-medium rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition shadow">
+                        Sign In
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Notification Messages -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl mb-3 flex items-center justify-between shadow-sm border 
+            {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800
+            {% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800
+            {% else %}bg-sky-50 border-sky-200 text-sky-800{% endif %}">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid {% if message.tags == 'error' %}fa-triangle-exclamation text-rose-500{% elif message.tags == 'success' %}fa-circle-check text-emerald-500{% else %}fa-circle-info text-sky-500{% endif %} text-lg"></i>
+                <span class="text-sm font-medium">{{ message }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+            <p><strong>MediFlow</strong> &copy; 2026 NEXORITHM Startup Project &bull; "One Platform. Every Step of Patient Care."</p>
+            <div class="flex items-center space-x-4 mt-2 sm:mt-0">
+                <span><i class="fa-solid fa-server mr-1 text-emerald-500"></i> Django 6.1 + SQLite</span>
+                <span><i class="fa-solid fa-shield-halved mr-1 text-sky-500"></i> RBAC Enforced</span>
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

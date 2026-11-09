@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Consultation Desk - Token #{{ appointment.token_number }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Active Consultation Banner -->
+    <div class="bg-gradient-to-r from-sky-900 via-slate-900 to-sky-950 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-sky-800">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-slate-950 font-mono">
+                    Token #{{ appointment.token_number }}
+                </span>
+                <span class="text-xs text-slate-400 font-mono">UHID: {{ patient.uhid }}</span>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight mt-2 text-white">
+                Consultation: {{ patient.full_name }}
+            </h1>
+            <div class="flex flex-wrap gap-2 mt-2 text-xs text-slate-300">
+                <span>Age: <strong>{{ patient.age }}</strong></span>
+                <span>&bull;</span>
+                <span>Gender: <strong>{{ patient.gender }}</strong></span>
+                <span>&bull;</span>
+                <span>Blood: <strong class="text-rose-400">{{ patient.blood_group|default:"N/A" }}</strong></span>
+                <span>&bull;</span>
+                <span>Contact: <strong>{{ patient.contact_number }}</strong></span>
+            </div>
+        </div>
+
+        {% if patient.medical_allergies %}
+        <div class="p-3 bg-rose-500/20 border border-rose-500/50 rounded-2xl text-rose-200 text-xs font-semibold flex items-center space-x-2">
+            <i class="fa-solid fa-triangle-exclamation text-rose-400 text-lg"></i>
+            <div>
+                <span class="block uppercase tracking-wider text-[10px] text-rose-300">Allergy Alert</span>
+                <span>{{ patient.medical_allergies }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Consultation Workspace Form -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left 2 Cols: Clinical Notes, Diagnosis, e-Rx, Lab -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- 1. Vitals Entry -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center">
+                        <i class="fa-solid fa-heart-pulse text-sky-500 mr-2"></i> Patient Vitals
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Blood Pressure</label>
+                            <input type="text" name="blood_pressure" value="{{ consultation.blood_pressure|default:'120/80' }}" placeholder="120/80 mmHg"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Pulse Rate</label>
+                            <input type="text" name="pulse_rate" value="{{ consultation.pulse_rate|default:'72' }}" placeholder="72 bpm"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Temperature</label>
+                            <input type="text" name="temperature" value="{{ consultation.temperature|default:'98.6' }}" placeholder="98.6 F"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">SpO2 Oxygen</label>
+                            <input type="text" name="spo2" value="{{ consultation.spo2|default:'99' }}" placeholder="99 %"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Symptoms & Diagnosis -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center">
+                        <i class="fa-solid fa-notes-medical text-sky-500 mr-2"></i> Clinical Notes & Findings
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Chief Complaints / Symptoms</label>
+                        <textarea name="chief_complaints" rows="2" required placeholder="Patient reported symptoms..."
+                                  class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">{{ consultation.chief_complaints|default:appointment.symptoms }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Provisional / Confirmed Diagnosis *</label>
+                        <input type="text" name="diagnosis" required value="{{ consultation.diagnosis|default:'' }}" placeholder="e.g. Acute Bronchitis, Essential Hypertension"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none text-slate-800">
+                    </div>
+                </div>
+
+                <!-- 3. Smart e-Prescription (with live stock checking!) -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center">
+                            <i class="fa-solid fa-prescription text-emerald-600 mr-2"></i> Smart Electronic Prescription (e-Rx)
+                        </h3>
+                        <span class="text-[11px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            <i class="fa-solid fa-shield-check mr-1"></i> Live Pharmacy Inventory Cross-Check
+                        </span>
+                    </div>
+
+                    <div id="prescription-items" class="space-y-3">
+                        <!-- Medicine Row 1 -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-12 gap-2 items-center text-xs">
+                            <div class="sm:col-span-5">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Medicine (Hospital Pharmacy Stock)</label>
+                                <select name="med_id" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-medium focus:ring-1 focus:ring-emerald-500">
+                                    <option value="">-- Select Medicine --</option>
+                                    {% for med in medicines %}
+                                    <option value="{{ med.id }}">
+                                        {{ med.name }} [In Stock: {{ med.stock_quantity }}] - ${{ med.unit_price }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Dosage</label>
+                                <input type="text" name="dosage" value="1-0-1" placeholder="1-0-1" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Duration</label>
+                                <input type="text" name="duration" value="5 days" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Quantity</label>
+                                <input type="number" name="quantity" value="10" min="1" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                            </div>
+                        </div>
+
+                        <!-- Medicine Row 2 -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-12 gap-2 items-center text-xs">
+                            <div class="sm:col-span-5">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Medicine (Hospital Pharmacy Stock)</label>
+                                <select name="med_id" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-medium focus:ring-1 focus:ring-emerald-500">
+                                    <option value="">-- Optional Second Medicine --</option>
+                                    {% for med in medicines %}
+                                    <option value="{{ med.id }}">
+                                        {{ med.name }} [In Stock: {{ med.stock_quantity }}] - ${{ med.unit_price }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Dosage</label>
+                                <input type="text" name="dosage" value="1-0-0" placeholder="1-0-0" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Duration</label>
+                                <input type="text" name="duration" value="5 days" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">Quantity</label>
+                                <input type="number" name="quantity" value="5" min="1" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">General Dietary Advice & Precautions</label>
+                        <input type="text" name="general_advice" placeholder="e.g. Drink plenty of warm water, take rest, avoid oily food"
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- 4. Laboratory Diagnostics Order -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-700 flex items-center">
+                        <i class="fa-solid fa-flask-vial text-indigo-500 mr-2"></i> Request Diagnostic Laboratory Test
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Select Diagnostic Test (Optional)</label>
+                            <select name="lab_test_name" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option value="">-- No Lab Test Required --</option>
+                                <option value="Complete Blood Count (CBC)">Complete Blood Count (CBC) - $350</option>
+                                <option value="Lipid Profile">Lipid Profile (Cholesterol) - $450</option>
+                                <option value="HbA1c Diabetes Profile">HbA1c Diabetes Profile - $400</option>
+                                <option value="Chest X-Ray (PA View)">Chest X-Ray (PA View) - $500</option>
+                                <option value="12-Lead ECG">12-Lead ECG - $250</option>
+                                <option value="Liver Function Test (LFT)">Liver Function Test (LFT) - $400</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center text-slate-500 text-xs pt-4">
+                            <span>Diagnostic orders are automatically transmitted to the Laboratory queue upon completion.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right 1 Col: Unified EHR History & Action -->
+            <div class="space-y-6">
+                
+                <!-- Complete Action Card -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl space-y-4">
+                    <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Finalize Consultation</h3>
+                    <p class="text-xs text-slate-400">
+                        Saving will close Token #{{ appointment.token_number }}, dispatch the electronic prescription to Pharmacy, send diagnostic orders to Lab, and generate the consolidated invoice.
+                    </p>
+                    
+                    <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-2xl text-sm shadow-xl transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-circle-check text-base"></i>
+                        <span>Complete & Generate Bill</span>
+                    </button>
+
+                    <a href="{% url 'dashboard' %}" class="block text-center text-xs text-slate-400 hover:text-slate-200 pt-2">
+                        Return to OPD Queue without saving
+                    </a>
+                </div>
+
+                <!-- Patient Unified EHR Past Timeline -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left mr-2 text-sky-500"></i> Past Medical Timeline
+                    </h3>
+                    <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                        {% for past in past_consultations %}
+                        <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs space-y-1">
+                            <div class="flex justify-between font-bold text-slate-800">
+                                <span>{{ past.created_at|date:"d M Y" }}</span>
+                                <span class="text-sky-600">Dr. {{ past.doctor.user.last_name }}</span>
+                            </div>
+                            <p class="text-slate-600"><strong>Diag:</strong> {{ past.diagnosis }}</p>
+                            <p class="text-slate-400 text-[11px] font-mono">BP: {{ past.blood_pressure|default:"-" }} &bull; Pulse: {{ past.pulse_rate|default:"-" }}</p>
+                        </div>
+                        {% empty %}
+                        <p class="text-xs text-slate-400 text-center py-4">First visit for this patient. No prior history.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}

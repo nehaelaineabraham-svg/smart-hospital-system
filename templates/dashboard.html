@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - MediFlow HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30 uppercase tracking-wider">
+                    {{ user.get_role_display }}
+                </span>
+                <span class="text-xs text-slate-400">&bull; {{ today|date:"l, d F Y" }}</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1 text-white">
+                Welcome, {{ user.get_full_name|default:user.username }}
+            </h1>
+            <p class="text-sm text-slate-300 mt-1">MediFlow Multispeciality Operations Hub</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'queue_display' %}" target="_blank" class="px-4 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-sky-500/20 transition flex items-center space-x-2">
+                <i class="fa-solid fa-tv"></i>
+                <span>Open Lobby TV Queue</span>
+            </a>
+            {% if user.is_receptionist or user.is_admin_user %}
+            <a href="{% url 'book_appointment' %}" class="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-teal-500/20 transition flex items-center space-x-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>Register / Token</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. HOSPITAL ADMINISTRATOR DASHBOARD VIEW  -->
+    <!-- ========================================== -->
+    {% if user.is_admin_user %}
+    <!-- KPI Metrics -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500">
+                <span class="text-xs font-bold uppercase tracking-wider">Patients</span>
+                <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black text-slate-900">{{ total_patients }}</span>
+                <span class="text-xs text-emerald-600 block mt-0.5"><i class="fa-solid fa-arrow-trend-up"></i> Registered UHIDs</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500">
+                <span class="text-xs font-bold uppercase tracking-wider">Specialists</span>
+                <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black text-slate-900">{{ total_doctors }}</span>
+                <span class="text-xs text-slate-500 block mt-0.5">Across 6 Specialties</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500">
+                <span class="text-xs font-bold uppercase tracking-wider">Today's Tokens</span>
+                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <i class="fa-solid fa-ticket"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black text-slate-900">{{ today_appointments }}</span>
+                <span class="text-xs text-amber-600 block mt-0.5"><i class="fa-solid fa-circle-dot"></i> OPD Queue Active</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500">
+                <span class="text-xs font-bold uppercase tracking-wider">Revenue Collected</span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black text-slate-900">${{ total_revenue|floatformat:2 }}</span>
+                <span class="text-xs text-emerald-600 block mt-0.5">Settled Invoices</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500">
+                <span class="text-xs font-bold uppercase tracking-wider">Pharmacy Alerts</span>
+                <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black text-slate-900">{{ low_stock_medicines }}</span>
+                <span class="text-xs text-rose-600 block mt-0.5">Low Stock Items</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active OPD Queue Overview Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-800">Live Hospital OPD Activity</h2>
+                <p class="text-xs text-slate-400">Real-time status of all patient tokens today</p>
+            </div>
+            <a href="{% url 'queue_display' %}" target="_blank" class="text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center space-x-1">
+                <span>Open Fullscreen Screen</span>
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Token</th>
+                        <th class="py-3 px-4">Patient / UHID</th>
+                        <th class="py-3 px-4">Specialty & Doctor</th>
+                        <th class="py-3 px-4">Symptoms</th>
+                        <th class="py-3 px-4">Queue Status</th>
+                        <th class="py-3 px-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for app in recent_appointments %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-4 font-bold text-slate-900">
+                            <span class="px-2 py-1 bg-slate-100 text-slate-800 rounded font-mono border border-slate-300">
+                                {{ app.token_number }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-semibold text-slate-800 block">{{ app.patient.full_name }}</span>
+                            <span class="text-slate-400 text-[11px] font-mono">{{ app.patient.uhid }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-medium text-slate-700 block">{{ app.doctor.department.name }}</span>
+                            <span class="text-slate-400 text-[11px]">{{ app.doctor }} ({{ app.doctor.room_number }})</span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-600 max-w-xs truncate">{{ app.symptoms|default:"Routine Checkup" }}</td>
+                        <td class="py-3 px-4">
+                            {% if app.status == 'ENGAGED' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center w-max">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> In Consultation
+                            </span>
+                            {% elif app.status == 'IN_WAITING' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                                In Waiting Line
+                            </span>
+                            {% elif app.status == 'CONSULTED' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800 border border-sky-200">
+                                Completed
+                            </span>
+                            {% else %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700">
+                                {{ app.get_status_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            {% if app.status == 'ENGAGED' or app.status == 'IN_WAITING' %}
+                            <a href="{% url 'doctor_consultation_desk' app.id %}" class="px-2.5 py-1 text-xs rounded bg-sky-50 text-sky-700 hover:bg-sky-100 font-semibold border border-sky-200">
+                                Open Desk
+                            </a>
+                            {% else %}
+                            <span class="text-slate-400 text-xs">Finished</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-slate-400">No appointments recorded for today.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- ========================================== -->
+    <!-- 2. DOCTOR WORKSTATION / CABIN VIEW         -->
+    <!-- ========================================== -->
+    {% if user.is_doctor %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Current Patient in Cabin -->
+        <div class="lg:col-span-1 space-y-4">
+            <div class="bg-gradient-to-b from-sky-50 to-white rounded-2xl border-2 border-sky-200 p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-sky-700">Active Consultation</span>
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                </div>
+
+                {% if current_app %}
+                <div class="text-center py-4 bg-white rounded-xl border border-sky-100 shadow-sm p-4">
+                    <span class="text-3xl font-black text-sky-600 font-mono tracking-tight">{{ current_app.token_number }}</span>
+                    <h3 class="text-lg font-bold text-slate-800 mt-2">{{ current_app.patient.full_name }}</h3>
+                    <p class="text-xs text-slate-500 font-mono">UHID: {{ current_app.patient.uhid }}</p>
+                    <div class="flex items-center justify-center space-x-2 mt-3 text-xs text-slate-600">
+                        <span class="px-2 py-0.5 bg-slate-100 rounded">Age: {{ current_app.patient.age }}</span>
+                        <span class="px-2 py-0.5 bg-slate-100 rounded">Gender: {{ current_app.patient.gender }}</span>
+                        <span class="px-2 py-0.5 bg-rose-50 text-rose-700 rounded font-semibold">{{ current_app.patient.blood_group|default:"Blood: N/A" }}</span>
+                    </div>
+                    {% if current_app.patient.medical_allergies %}
+                    <div class="mt-3 p-2 bg-rose-50 border border-rose-200 rounded text-rose-700 text-xs font-medium">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Allergy: {{ current_app.patient.medical_allergies }}
+                    </div>
+                    {% endif %}
+                    <div class="mt-5">
+                        <a href="{% url 'doctor_consultation_desk' current_app.id %}" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-stethoscope"></i>
+                            <span>Continue Consultation & e-Rx</span>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-10 bg-white rounded-xl border border-dashed border-slate-300">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-2">
+                        <i class="fa-solid fa-user-clock text-xl"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700">Cabin is Free</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Click "Call Patient" on the waiting queue to begin.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Doctor Profile Badge -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 text-xs space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Department:</span>
+                    <span class="font-bold text-slate-800">{{ doctor.department.name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Cabin:</span>
+                    <span class="font-bold text-slate-800">{{ doctor.room_number }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Consultation Fee:</span>
+                    <span class="font-bold text-emerald-600">${{ doctor.consultation_fee }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waiting Queue for Doctor -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Patients in Waiting Line</h2>
+                        <p class="text-xs text-slate-400">Patients checked in and waiting outside your cabin</p>
+                    </div>
+                    <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
+                        {{ waiting_apps.count }} Waiting
+                    </span>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    {% for app in waiting_apps %}
+                    <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-12 h-12 rounded-xl bg-sky-50 text-sky-700 font-mono font-bold flex items-center justify-center text-sm border border-sky-200">
+                                {{ app.token_number }}
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800">{{ app.patient.full_name }}</h4>
+                                <p class="text-xs text-slate-400 font-mono">UHID: {{ app.patient.uhid }} &bull; Age: {{ app.patient.age }}</p>
+                                <p class="text-xs text-slate-500 italic mt-0.5">{{ app.symptoms|default:"Routine consultation" }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'call_next_patient' app.id %}" class="py-2 px-4 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-bullhorn text-xs"></i>
+                                <span>Call Patient</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-slate-400 text-sm">
+                        No patients currently waiting in line.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Today's Consulted Patients -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700">Completed Consultations Today ({{ completed_apps.count }})</h3>
+                </div>
+                <div class="divide-y divide-slate-100 text-xs">
+                    {% for app in completed_apps %}
+                    <div class="p-3 flex items-center justify-between text-slate-600">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-mono font-bold text-slate-700">{{ app.token_number }}</span>
+                            <span class="font-medium text-slate-800">{{ app.patient.full_name }}</span>
+                        </div>
+                        <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Consulted</span>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-slate-400 text-xs">No completed consultations yet today.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- ========================================== -->
+    <!-- 3. RECEPTIONIST DASHBOARD VIEW             -->
+    <!-- ========================================== -->
+    {% if user.is_receptionist %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Quick Action Card -->
+        <div class="lg:col-span-1 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                <h3 class="text-base font-bold text-slate-800">Front Desk Actions</h3>
+                <a href="{% url 'book_appointment' %}" class="w-full py-3 px-4 bg-gradient-to-r from-teal-600 to-sky-600 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Register Walk-in & Issue Token</span>
+                </a>
+                <a href="{% url 'queue_display' %}" target="_blank" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-xs transition flex items-center justify-center space-x-2 border border-slate-300">
+                    <i class="fa-solid fa-tv text-sky-600"></i>
+                    <span>Open Lobby Screen (TV)</span>
+                </a>
+            </div>
+
+            <!-- Active Doctors Status -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm text-xs">
+                <h4 class="font-bold text-slate-700 mb-3 uppercase tracking-wider">Doctors on Duty</h4>
+                <div class="space-y-2">
+                    {% for doc in doctors %}
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+                        <div>
+                            <span class="font-semibold text-slate-800 block">Dr. {{ doc.user.get_full_name }}</span>
+                            <span class="text-slate-400 text-[11px]">{{ doc.department.name }} &bull; {{ doc.room_number }}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">Available</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Queue List -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">Today's Token Queue</h2>
+                        <p class="text-xs text-slate-400">Manage patient arrivals and token tickets</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">Token</th>
+                                <th class="py-3 px-4">Patient</th>
+                                <th class="py-3 px-4">Doctor</th>
+                                <th class="py-3 px-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for app in today_appointments %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="py-3 px-4 font-mono font-bold text-slate-900">{{ app.token_number }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="font-semibold text-slate-800 block">{{ app.patient.full_name }}</span>
+                                    <span class="text-slate-400 text-[11px] font-mono">{{ app.patient.uhid }}</span>
+                                </td>
+                                <td class="py-3 px-4 text-slate-700">{{ app.doctor }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold 
+                                        {% if app.status == 'ENGAGED' %}bg-emerald-100 text-emerald-800
+                                        {% elif app.status == 'IN_WAITING' %}bg-amber-100 text-amber-800
+                                        {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                        {{ app.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="py-6 text-center text-slate-400">No appointments today.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- ========================================== -->
+    <!-- 4. PHARMACIST DASHBOARD VIEW               -->
+    <!-- ========================================== -->
+    {% if user.is_pharmacist %}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-800">Pending Prescriptions for Dispensing</h2>
+            <a href="{% url 'pharmacy_desk' %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">
+                Open Full Pharmacy Desk & Stock
+            </a>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="divide-y divide-slate-100">
+                {% for rx in pending_prescriptions %}
+                <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-xs">Rx #{{ rx.id }}</span>
+                            <h4 class="text-sm font-bold text-slate-800">{{ rx.patient.full_name }} ({{ rx.patient.uhid }})</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Prescribed by: {{ rx.doctor }} &bull; {{ rx.created_at|date:"d M, H:i" }}</p>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            {% for item in rx.items.all %}
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200">
+                                {{ item.medicine.name }} ({{ item.quantity }} units)
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'dispense_prescription' rx.id %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow transition">
+                            <i class="fa-solid fa-check mr-1"></i> Dispense & Deduct Stock
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-slate-400 text-sm">
+                    No pending prescriptions. All medicines up to date!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
