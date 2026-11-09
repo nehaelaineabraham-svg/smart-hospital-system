@@ -25,9 +25,9 @@ COPY . /app/
 RUN python manage.py collectstatic --noinput
 
 # OpenShift Arbitrary UID / GID 0 Security Compliance
-# OpenShift runs containers as a random UID in root group (GID 0)
+# Give full read/write permissions to /app so SQLite and logs work for any assigned OpenShift UID
 RUN chgrp -R 0 /app && \
-    chmod -R g=u /app && \
+    chmod -R 777 /app && \
     chmod +x /app/entrypoint.sh
 
 # Expose standard unprivileged container port for OpenShift
@@ -37,4 +37,4 @@ EXPOSE 8080
 USER 1001
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "3", "--timeout", "120"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120"]

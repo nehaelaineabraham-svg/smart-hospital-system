@@ -1,0 +1,30 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: mediflow
+  labels:
+    app: mediflow
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: mediflow
+  labels:
+    app: mediflow
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/nehaelaineabraham-svg/smart-hospital-system.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: mediflow:latest
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
