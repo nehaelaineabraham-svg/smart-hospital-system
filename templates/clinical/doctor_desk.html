@@ -165,7 +165,7 @@
                                     <option value="">-- Choose Formulation --</option>
                                     {% for med in medicines %}
                                     <option value="{{ med.id }}">
-                                        {{ med.name }} [Stock: {{ med.stock_quantity }}] - ${{ med.unit_price }}
+                                        {{ med.name }} [Stock: {{ med.stock_quantity }}] - ₹{{ med.unit_price }}
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -192,7 +192,7 @@
                                     <option value="">-- Optional Second Medication --</option>
                                     {% for med in medicines %}
                                     <option value="{{ med.id }}">
-                                        {{ med.name }} [Stock: {{ med.stock_quantity }}] - ${{ med.unit_price }}
+                                        {{ med.name }} [Stock: {{ med.stock_quantity }}] - ₹{{ med.unit_price }}
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -229,12 +229,12 @@
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Diagnostic Investigation</label>
                             <select name="lab_test_name" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50">
                                 <option value="">-- No Lab Test Required --</option>
-                                <option value="Complete Blood Count (CBC)">Complete Blood Count (CBC) - $350.00</option>
-                                <option value="Lipid Profile (Cholesterol)">Lipid Profile Panel - $450.00</option>
-                                <option value="HbA1c Diabetes Profile">HbA1c Diabetes Profile - $400.00</option>
-                                <option value="Chest X-Ray (PA View)">Chest X-Ray (PA View) - $500.00</option>
-                                <option value="12-Lead Electrocardiogram (ECG)">12-Lead ECG - $250.00</option>
-                                <option value="Liver Function Test (LFT)">Liver Function Test (LFT) - $400.00</option>
+                                <option value="Complete Blood Count (CBC)">Complete Blood Count (CBC) - ₹350.00</option>
+                                <option value="Lipid Profile (Cholesterol)">Lipid Profile Panel - ₹450.00</option>
+                                <option value="HbA1c Diabetes Profile">HbA1c Diabetes Profile - ₹400.00</option>
+                                <option value="Chest X-Ray (PA View)">Chest X-Ray (PA View) - ₹500.00</option>
+                                <option value="12-Lead Electrocardiogram (ECG)">12-Lead ECG - ₹250.00</option>
+                                <option value="Liver Function Test (LFT)">Liver Function Test (LFT) - ₹400.00</option>
                             </select>
                         </div>
                         <div class="flex items-center text-slate-500 text-xs bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100">

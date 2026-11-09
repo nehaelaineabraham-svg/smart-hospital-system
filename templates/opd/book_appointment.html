@@ -109,7 +109,7 @@
                         <select id="input_doctor" name="doctor_id" required onchange="updatePreview()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-slate-50/50">
                             {% for doc in doctors %}
                             <option value="{{ doc.id }}" data-dept="{{ doc.department.name }}" data-code="{{ doc.department.code }}" data-room="{{ doc.room_number }}" data-fee="{{ doc.consultation_fee }}">
-                                Dr. {{ doc.user.get_full_name }} &bull; {{ doc.department.name }} (Room: {{ doc.room_number }}) - Fee: ${{ doc.consultation_fee }}
+                                Dr. {{ doc.user.get_full_name }} &bull; {{ doc.department.name }} (Room: {{ doc.room_number }}) - Fee: ₹{{ doc.consultation_fee }}
                             </option>
                             {% endfor %}
                         </select>

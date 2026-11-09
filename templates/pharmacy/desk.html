@@ -144,7 +144,7 @@
                         <td class="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
                             {{ med.batch_number }} &bull; Exp: {{ med.expiry_date|date:"M Y" }}
                         </td>
-                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">${{ med.unit_price }}</td>
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">₹{{ med.unit_price }}</td>
                         <td class="py-3.5 px-4">
                             <div class="flex items-center space-x-2">
                                 <span class="font-mono font-black text-xs {% if med.is_low_stock %}text-rose-600{% else %}text-emerald-700{% endif %} w-8 text-right">

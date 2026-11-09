@@ -47,4 +47,4 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Invoice {self.invoice_number} - {self.patient.full_name} (${self.net_payable} [{self.payment_status}])"
+        return f"Invoice {self.invoice_number} - {self.patient.full_name} (₹{self.net_payable} [{self.payment_status}])"

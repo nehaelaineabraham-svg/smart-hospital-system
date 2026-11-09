@@ -66,13 +66,13 @@
                         </td>
                         <td class="py-3.5 px-4">
                             <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-slate-600">
-                                <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100">OPD: ${{ inv.consultation_fee }}</span>
-                                <span class="px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-100">Rx: ${{ inv.pharmacy_fee }}</span>
-                                <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">Lab: ${{ inv.lab_fee }}</span>
+                                <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100">OPD: ₹{{ inv.consultation_fee }}</span>
+                                <span class="px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-100">Rx: ₹{{ inv.pharmacy_fee }}</span>
+                                <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">Lab: ₹{{ inv.lab_fee }}</span>
                             </div>
                         </td>
                         <td class="py-3.5 px-4 font-mono font-black text-slate-900 text-sm">
-                            ${{ inv.net_payable }}
+                            ₹{{ inv.net_payable }}
                         </td>
                         <td class="py-3.5 px-4">
                             {% if inv.payment_status == 'PAID' %}

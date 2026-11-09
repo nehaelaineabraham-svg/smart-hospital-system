@@ -124,7 +124,7 @@
                 </div>
             </div>
             <div class="space-y-1">
-                <span class="text-3xl font-extrabold text-slate-900 tracking-tight">${{ total_revenue|floatformat:2 }}</span>
+                <span class="text-3xl font-extrabold text-slate-900 tracking-tight">₹{{ total_revenue|floatformat:2 }}</span>
                 <div class="flex items-center text-xs text-emerald-600 font-semibold">
                     <i class="fa-solid fa-check-double mr-1 text-[10px]"></i>
                     <span>Consult + Rx + Labs</span>
@@ -324,7 +324,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-slate-400">Consultation Fee:</span>
-                    <span class="font-mono font-bold text-emerald-600">${{ doctor.consultation_fee }}</span>
+                    <span class="font-mono font-bold text-emerald-600">₹{{ doctor.consultation_fee }}</span>
                 </div>
             </div>
         </div>

@@ -77,7 +77,7 @@
                     <tr>
                         <th class="py-3 px-4">Item #</th>
                         <th class="py-3 px-4">Medical Service / Description</th>
-                        <th class="py-3 px-4 text-right">Amount (USD)</th>
+                        <th class="py-3 px-4 text-right">Amount (INR / ₹)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -88,7 +88,7 @@
                             <span class="font-bold text-slate-900 block font-sans">Specialist OPD Consultation</span>
                             <span class="text-[11px] text-slate-400">Clinical examination, vitals triage & treatment plan</span>
                         </td>
-                        <td class="py-3 px-4 text-right font-bold text-slate-900">${{ invoice.consultation_fee|floatformat:2 }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-slate-900">₹{{ invoice.consultation_fee|floatformat:2 }}</td>
                     </tr>
                     {% endif %}
 
@@ -99,7 +99,7 @@
                             <span class="font-bold text-slate-900 block font-sans">Hospital Pharmacy Formulary (e-Rx)</span>
                             <span class="text-[11px] text-slate-400">Dispensed pharmaceuticals, tablets & therapeutics</span>
                         </td>
-                        <td class="py-3 px-4 text-right font-bold text-slate-900">${{ invoice.pharmacy_fee|floatformat:2 }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-slate-900">₹{{ invoice.pharmacy_fee|floatformat:2 }}</td>
                     </tr>
                     {% endif %}
 
@@ -110,7 +110,7 @@
                             <span class="font-bold text-slate-900 block font-sans">Diagnostic Laboratory & Pathology</span>
                             <span class="text-[11px] text-slate-400">Automated diagnostic panels & medical imaging</span>
                         </td>
-                        <td class="py-3 px-4 text-right font-bold text-slate-900">${{ invoice.lab_fee|floatformat:2 }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-slate-900">₹{{ invoice.lab_fee|floatformat:2 }}</td>
                     </tr>
                     {% endif %}
 
@@ -120,7 +120,7 @@
                         <td class="py-3 px-4">
                             <span class="font-bold text-slate-900 block font-sans">Nursing Care & Administrative Triage</span>
                         </td>
-                        <td class="py-3 px-4 text-right font-bold text-slate-900">${{ invoice.other_charges|floatformat:2 }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-slate-900">₹{{ invoice.other_charges|floatformat:2 }}</td>
                     </tr>
                     {% endif %}
                 </tbody>
@@ -143,15 +143,15 @@
             <div class="w-full sm:w-72 space-y-2 text-xs font-mono">
                 <div class="flex justify-between text-slate-500">
                     <span>Subtotal:</span>
-                    <span>${{ invoice.total_amount|floatformat:2 }}</span>
+                    <span>₹{{ invoice.total_amount|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between text-emerald-600 font-semibold">
                     <span>Subsidy / Concession:</span>
-                    <span>-${{ invoice.discount|floatformat:2 }}</span>
+                    <span>-₹{{ invoice.discount|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between text-lg font-black text-slate-950 border-t-2 border-slate-900 pt-2 font-mono">
                     <span>Net Payable:</span>
-                    <span class="text-sky-700">${{ invoice.net_payable|floatformat:2 }}</span>
+                    <span class="text-sky-700">₹{{ invoice.net_payable|floatformat:2 }}</span>
                 </div>
             </div>
         </div>
