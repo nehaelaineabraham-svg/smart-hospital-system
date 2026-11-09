@@ -3,19 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPD Waiting Room TV Screen - MediFlow</title>
-    <!-- Auto-refresh every 6 seconds for live real-time simulation -->
+    <title>OPD Waiting Room TV Broadcast – MediFlow Multispeciality</title>
+    <!-- Auto-refresh every 6 seconds for continuous live stream -->
     <meta http-equiv="refresh" content="6">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
                     colors: {
-                        brand: {
-                            navy: '#0b1120',
-                            card: '#1e293b',
+                        tv: {
+                            bg: '#060a12',
+                            panel: '#0d1527',
+                            border: '#1b2a4a',
                             accent: '#38bdf8',
                         }
                     }
@@ -24,54 +36,63 @@
         }
     </script>
 </head>
-<body class="bg-[#0b1120] text-slate-100 min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 font-sans select-none">
+<body class="bg-tv-bg text-slate-100 min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 font-sans select-none antialiased">
 
-    <!-- TV Header Banner -->
-    <header class="flex flex-col md:flex-row items-center justify-between pb-6 border-b border-slate-800 gap-4">
+    <!-- Broadcast Header -->
+    <header class="flex flex-col md:flex-row items-center justify-between pb-6 border-b border-tv-border gap-4">
         <div class="flex items-center space-x-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-sky-500/30">
-                <i class="fa-solid fa-heart-pulse text-3xl"></i>
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 via-sky-600 to-teal-400 flex items-center justify-center text-white shadow-2xl shadow-sky-500/40">
+                <i class="fa-solid fa-heart-pulse text-3xl animate-pulse"></i>
             </div>
             <div>
-                <h1 class="text-3xl font-black tracking-tight text-white flex items-center">
-                    Medi<span class="text-sky-400">Flow</span>
-                    <span class="ml-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-sky-950 text-sky-300 border border-sky-800">
-                        OPD Live Queue
+                <div class="flex items-center space-x-2.5">
+                    <h1 class="text-3xl font-black tracking-tight text-white font-sans">
+                        Medi<span class="text-sky-400">Flow</span>
+                    </h1>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-sky-950 text-sky-300 border border-sky-800">
+                        OPD Matrix TV
                     </span>
-                </h1>
+                </div>
                 <p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">
-                    Multispeciality Hospital Waiting Display &bull; {{ today|date:"l, d F Y" }}
+                    Multi-Speciality Hospital Outpatient Waiting Broadcast &bull; {{ today|date:"l, d F Y" }}
                 </p>
             </div>
         </div>
 
         <!-- Live Clock & Status Badge -->
         <div class="flex items-center space-x-6">
-            <div class="flex items-center space-x-2 text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-4 py-2 rounded-xl">
-                <span class="relative flex h-3 w-3">
+            <!-- Audio Toggle Helper -->
+            <button onclick="toggleSpeech()" id="audio-btn" class="hidden sm:flex items-center space-x-2 text-xs font-bold text-sky-300 bg-sky-950/80 border border-sky-800/80 px-3.5 py-2 rounded-xl hover:bg-sky-900 transition">
+                <i class="fa-solid fa-volume-high text-sky-400"></i>
+                <span id="audio-status">Voice Calling Active</span>
+            </button>
+
+            <div class="flex items-center space-x-2 text-xs font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-4 py-2 rounded-xl shadow-lg shadow-emerald-950/50">
+                <span class="relative flex h-2.5 w-2.5">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
-                <span>SYSTEM ACTIVE (LIVE)</span>
+                <span class="tracking-widest">LIVE BROADCAST</span>
             </div>
+
             <div class="text-right">
                 <div id="tv-clock" class="text-3xl font-black font-mono tracking-wider text-sky-300">00:00:00</div>
-                <div class="text-[10px] text-slate-500 uppercase tracking-widest">Hospital Standard Time</div>
+                <div class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Standard Hospital Time</div>
             </div>
         </div>
     </header>
 
-    <!-- Department Selector Pills -->
-    <div class="flex items-center space-x-2 my-5 overflow-x-auto pb-2">
+    <!-- Department Selector Filter Pills -->
+    <div class="flex items-center space-x-2 my-5 overflow-x-auto pb-2 scrollbar-none">
         <a href="{% url 'queue_display' %}" 
            class="px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition whitespace-nowrap
-           {% if not selected_dept %}bg-sky-500 text-slate-900 shadow-lg shadow-sky-500/20{% else %}bg-slate-800 text-slate-400 hover:text-white{% endif %}">
-           All Specialties
+           {% if not selected_dept %}bg-gradient-to-r from-sky-500 to-teal-400 text-slate-950 shadow-lg shadow-sky-500/20{% else %}bg-tv-panel text-slate-400 hover:text-white border border-tv-border{% endif %}">
+           <i class="fa-solid fa-hospital mr-1.5"></i> All Clinical Wings
         </a>
         {% for dept in departments %}
         <a href="{% url 'queue_display_dept' dept.code %}" 
            class="px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition whitespace-nowrap
-           {% if selected_dept and selected_dept.code == dept.code %}bg-sky-500 text-slate-900 shadow-lg shadow-sky-500/20{% else %}bg-slate-800 text-slate-400 hover:text-white{% endif %}">
+           {% if selected_dept and selected_dept.code == dept.code %}bg-gradient-to-r from-sky-500 to-teal-400 text-slate-950 shadow-lg shadow-sky-500/20{% else %}bg-tv-panel text-slate-400 hover:text-white border border-tv-border{% endif %}">
            {{ dept.name }} ({{ dept.code }})
         </a>
         {% endfor %}
@@ -80,59 +101,64 @@
     <!-- Main Live Screen Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
         
-        <!-- NOW SERVING (HERO PROMINENT SECTION - 7 COLS) -->
+        <!-- NOW SERVING IN CABIN (HERO PROMINENT SECTION - 7 COLS) -->
         <div class="lg:col-span-7 flex flex-col">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-lg font-bold text-emerald-400 flex items-center">
-                    <i class="fa-solid fa-bullhorn mr-2"></i> NOW CONSULTING IN CABIN
+                <h2 class="text-base font-extrabold text-emerald-400 flex items-center tracking-wide">
+                    <i class="fa-solid fa-bullhorn mr-2.5 text-emerald-400 animate-bounce"></i> NOW CONSULTING IN CABIN
                 </h2>
-                <span class="text-xs text-slate-500">Please proceed when your token appears</span>
+                <span class="text-xs text-slate-500 font-medium">Proceed directly to cabin when your token is called</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
                 {% for app in engaged_tokens %}
-                <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-emerald-500 rounded-3xl p-6 shadow-2xl shadow-emerald-950/50 flex flex-col justify-between relative overflow-hidden">
-                    <div class="absolute -right-6 -bottom-6 text-slate-800/40 text-8xl font-black select-none pointer-events-none">
+                <div class="bg-gradient-to-br from-[#0c1527] to-[#111f38] border-2 border-emerald-500/80 rounded-3xl p-6 shadow-2xl shadow-emerald-950/60 flex flex-col justify-between relative overflow-hidden group">
+                    <!-- Subtle background token sequence watermark -->
+                    <div class="absolute -right-4 -bottom-6 text-slate-800/20 text-8xl font-black font-mono select-none pointer-events-none">
                         {{ app.token_sequence }}
                     </div>
+
                     <div>
                         <div class="flex justify-between items-start">
-                            <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-slate-950">
-                                INSIDE CABIN
+                            <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 shadow-sm flex items-center">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-950 mr-1.5 animate-ping"></span>
+                                PLEASE ENTER
                             </span>
-                            <span class="text-emerald-400 text-xs font-bold font-mono">
+                            <span class="text-emerald-400 text-xs font-bold font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800">
                                 {{ app.department.name }}
                             </span>
                         </div>
 
-                        <!-- Big Token Number -->
-                        <div class="my-4 text-center">
-                            <span class="text-5xl sm:text-6xl font-black font-mono tracking-tight text-white text-emerald-300 drop-shadow">
+                        <!-- Big High-Contrast Token -->
+                        <div class="my-5 text-center">
+                            <span class="text-5xl sm:text-6xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-sky-300 drop-shadow">
                                 {{ app.token_number }}
                             </span>
-                            <h3 class="text-xl font-bold text-white mt-2">{{ app.patient.full_name }}</h3>
-                            <p class="text-xs text-slate-400 font-mono">UHID: {{ app.patient.uhid }}</p>
+                            <h3 class="text-xl font-black text-white mt-2">{{ app.patient.full_name }}</h3>
+                            <p class="text-xs text-slate-400 font-mono mt-0.5">UHID: {{ app.patient.uhid }}</p>
                         </div>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-700/80 flex items-center justify-between text-xs">
+                    <div class="pt-4 border-t border-tv-border flex items-center justify-between text-xs">
                         <div>
-                            <span class="text-slate-400 block text-[10px] uppercase">Doctor</span>
-                            <span class="font-bold text-slate-200">Dr. {{ app.doctor.user.get_full_name }}</span>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Consultant</span>
+                            <span class="font-bold text-slate-200">{{ app.doctor }}</span>
                         </div>
                         <div class="text-right">
-                            <span class="text-slate-400 block text-[10px] uppercase">Cabin</span>
-                            <span class="font-black text-emerald-400 text-sm font-mono px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800">{{ app.doctor.room_number }}</span>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Assigned Room</span>
+                            <span class="font-black text-emerald-400 text-sm font-mono px-2.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 shadow">
+                                {{ app.doctor.room_number }}
+                            </span>
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <div class="col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center text-center">
-                    <div class="w-16 h-16 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-stethoscope text-2xl"></i>
+                <div class="col-span-2 bg-tv-panel/50 border border-tv-border rounded-3xl p-12 flex flex-col items-center justify-center text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-tv-panel text-slate-500 flex items-center justify-center text-2xl mb-3 border border-tv-border">
+                        <i class="fa-solid fa-stethoscope"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-400">All Doctors are Currently Preparing</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-sm">Next patient tokens will be called shortly. Please keep your token slip ready.</p>
+                    <h3 class="text-lg font-bold text-slate-300">Doctors Currently Reviewing Patient Records</h3>
+                    <p class="text-xs text-slate-500 mt-1 max-w-sm">Upcoming tokens will be announced momentarily. Please remain seated in the waiting lobby.</p>
                 </div>
                 {% endfor %}
             </div>
@@ -141,44 +167,45 @@
         <!-- UPCOMING TOKENS IN WAITING (5 COLS) -->
         <div class="lg:col-span-5 flex flex-col">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-lg font-bold text-amber-400 flex items-center">
-                    <i class="fa-solid fa-clock mr-2"></i> NEXT IN LINE (WAITING)
+                <h2 class="text-base font-extrabold text-amber-400 flex items-center tracking-wide">
+                    <i class="fa-solid fa-clock-rotate-left mr-2.5 text-amber-400"></i> NEXT IN LINE (WAITING)
                 </h2>
-                <span class="text-xs text-slate-500">{{ waiting_tokens.count }} in line</span>
+                <span class="text-xs text-slate-500 font-medium">{{ waiting_tokens.count }} Patients in Lobby</span>
             </div>
 
-            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 flex-1 flex flex-col justify-between overflow-hidden">
-                <div class="space-y-3 overflow-y-auto max-h-[500px]">
+            <div class="bg-tv-panel border border-tv-border rounded-3xl p-4 flex-1 flex flex-col justify-between overflow-hidden shadow-2xl">
+                <div class="space-y-2.5 overflow-y-auto max-h-[520px] pr-1">
                     {% for app in waiting_tokens %}
-                    <div class="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-between hover:border-amber-500/50 transition">
+                    <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between hover:border-amber-500/60 transition group">
                         <div class="flex items-center space-x-3">
-                            <span class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-black text-base flex items-center justify-center">
+                            <span class="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-black text-base flex items-center justify-center shadow-inner">
                                 {{ app.token_number }}
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-white">{{ app.patient.full_name }}</h4>
-                                <p class="text-xs text-slate-400">{{ app.department.name }} &bull; Dr. {{ app.doctor.user.last_name }}</p>
+                                <h4 class="text-sm font-bold text-white group-hover:text-amber-300 transition">{{ app.patient.full_name }}</h4>
+                                <p class="text-xs text-slate-400 font-medium">{{ app.department.name }} &bull; {{ app.doctor }}</p>
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-semibold">
-                                Est. {{ app.doctor.room_number }}
+                            <span class="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                {{ app.doctor.room_number }}
                             </span>
                         </div>
                     </div>
                     {% empty %}
-                    <div class="text-center py-12 text-slate-500 text-xs">
-                        No upcoming patients in waiting line.
+                    <div class="text-center py-16 text-slate-500 text-xs">
+                        <i class="fa-solid fa-check text-slate-600 text-2xl mb-2 block"></i>
+                        No upcoming patients in waiting queue.
                     </div>
                     {% endfor %}
                 </div>
 
-                <!-- Live Notification Ticker -->
-                <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                    <span class="flex items-center text-sky-400 font-medium">
-                        <i class="fa-solid fa-info-circle mr-1.5"></i> Display updates automatically
+                <!-- Footer Ticker -->
+                <div class="mt-4 pt-3 border-t border-tv-border text-xs text-slate-400 flex items-center justify-between">
+                    <span class="flex items-center text-sky-400 font-semibold text-[11px]">
+                        <i class="fa-solid fa-arrows-rotate mr-1.5 animate-spin"></i> Screen refreshes automatically
                     </span>
-                    <a href="{% url 'dashboard' %}" class="text-[11px] text-slate-500 hover:text-slate-300">
+                    <a href="{% url 'dashboard' %}" class="text-[11px] text-slate-400 hover:text-white transition">
                         Exit to Dashboard &rarr;
                     </a>
                 </div>
@@ -187,6 +214,7 @@
 
     </div>
 
+    <!-- Speech Synthesizer Script -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -197,6 +225,25 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        let voiceEnabled = true;
+        function toggleSpeech() {
+            voiceEnabled = !voiceEnabled;
+            const status = document.getElementById('audio-status');
+            status.textContent = voiceEnabled ? "Voice Calling Active" : "Voice Calling Muted";
+        }
+
+        // Announce current engaged token on page load if synthesis supported
+        window.addEventListener('DOMContentLoaded', () => {
+            const firstToken = document.querySelector('.drop-shadow');
+            if (firstToken && 'speechSynthesis' in window && voiceEnabled) {
+                const tokenText = firstToken.textContent.trim();
+                const utter = new SpeechSynthesisUtterance(`Token ${tokenText}, please enter consultation room.`);
+                utter.rate = 0.9;
+                utter.pitch = 1.0;
+                // Optional voice trigger (commented or low volume so it doesn't disturb automatically)
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,149 +1,175 @@
 {% extends 'base.html' %}
 
-{% block title %}Pharmacy Management Desk - MediFlow{% endblock %}
+{% block title %}PharmaFlow Inventory & Dispensing Desk – MediFlow{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
 
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-emerald-900">
-        <div>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 uppercase tracking-wider">
-                PharmaFlow Inventory & Dispensing
-            </span>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1 text-white">
-                Hospital Pharmacy Operations
-            </h1>
-            <p class="text-xs text-slate-400 mt-1">Dispense prescribed medications, track batch expiry, and maintain live stock levels</p>
-        </div>
-        <div class="flex items-center space-x-3 text-xs">
-            <span class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300">
-                <i class="fa-solid fa-boxes-stacked mr-1 text-emerald-400"></i> Total Medicines: <strong>{{ medicines.count }}</strong>
-            </span>
-            <span class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300">
-                <i class="fa-solid fa-clock mr-1 text-amber-400"></i> Pending Prescriptions: <strong>{{ pending_prescriptions.count }}</strong>
-            </span>
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-navy-950 via-teal-950 to-navy-900 rounded-3xl p-6 sm:p-8 text-white shadow-card-hover border border-teal-900/80 relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30 font-mono">
+                    PharmaFlow ERP Core
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5 text-white">
+                    Hospital Pharmacy & Drug Inventory
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                    Direct electronic prescription fulfillment with real-time stock deduction and batch expiry tracking
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-3 text-xs">
+                <div class="px-4 py-2 rounded-2xl bg-slate-900/80 border border-slate-700/80 text-slate-200">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Medicines in Formulary</span>
+                    <span class="text-lg font-black text-teal-300 font-mono">{{ medicines.count }}</span>
+                </div>
+                <div class="px-4 py-2 rounded-2xl bg-slate-900/80 border border-slate-700/80 text-slate-200">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Pending Dispense</span>
+                    <span class="text-lg font-black text-amber-300 font-mono">{{ pending_prescriptions.count }}</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- 1. Prescriptions Pending Dispensing -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-card overflow-hidden">
+        <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <h2 class="text-base font-bold text-slate-800 flex items-center">
-                    <i class="fa-solid fa-prescription-bottle-medical text-emerald-600 mr-2"></i>
-                    Pending Electronic Prescriptions (e-Rx)
+                <h2 class="text-base font-bold text-slate-900 flex items-center">
+                    <i class="fa-solid fa-receipt text-teal-600 mr-2 text-lg"></i>
+                    Pending Electronic Prescriptions for Dispensing
                 </h2>
-                <p class="text-xs text-slate-400">Prescriptions waiting at the pharmacy counter for patient pickup</p>
+                <p class="text-xs text-slate-400">Directly routed from OPD doctor desks &bull; Click to fulfill and auto-decrement inventory</p>
             </div>
-            <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
-                {{ pending_prescriptions.count }} Pending
+            <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-black rounded-full font-mono">
+                {{ pending_prescriptions.count }} QUEUED
             </span>
         </div>
 
         <div class="divide-y divide-slate-100">
             {% for rx in pending_prescriptions %}
-            <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 transition">
-                <div class="space-y-2">
-                    <div class="flex items-center space-x-3">
+            <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 hover:bg-slate-50/70 transition">
+                <div class="space-y-2.5">
+                    <div class="flex flex-wrap items-center gap-2">
                         <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 font-mono font-bold text-xs">
                             Rx #{{ rx.id }}
                         </span>
                         <h4 class="text-base font-bold text-slate-900">{{ rx.patient.full_name }}</h4>
                         <span class="text-xs font-mono text-slate-400">UHID: {{ rx.patient.uhid }}</span>
+                        <span class="text-xs text-slate-400">&bull;</span>
+                        <span class="text-xs text-slate-500">Prescribed by <strong>{{ rx.doctor }}</strong></span>
                     </div>
 
-                    <p class="text-xs text-slate-500">
-                        Prescribed by <strong>{{ rx.doctor }}</strong> &bull; {{ rx.created_at|date:"d M Y, H:i" }}
-                    </p>
-
-                    <!-- Prescribed items -->
+                    <!-- Prescribed Medications Chips -->
                     <div class="flex flex-wrap gap-2 pt-1">
                         {% for item in rx.items.all %}
-                        <div class="px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs flex items-center space-x-2 shadow-2xs">
-                            <i class="fa-solid fa-capsules text-emerald-500"></i>
+                        <div class="px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs flex items-center space-x-2.5 shadow-2xs">
+                            <i class="fa-solid fa-capsules text-teal-500"></i>
                             <span class="font-bold text-slate-800">{{ item.medicine.name }}</span>
                             <span class="text-slate-400">&bull;</span>
-                            <span class="text-slate-600">{{ item.dosage }} ({{ item.duration }})</span>
-                            <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-mono font-bold text-[11px]">
+                            <span class="text-slate-600 font-medium">{{ item.dosage }} ({{ item.duration }})</span>
+                            <span class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 font-mono font-bold text-[11px] border border-teal-200">
                                 Qty: {{ item.quantity }}
                             </span>
                         </div>
                         {% endfor %}
                     </div>
+
+                    {% if rx.general_advice %}
+                    <p class="text-xs text-slate-500 italic">
+                        <i class="fa-solid fa-note-sticky text-slate-400 mr-1"></i> Advice: {{ rx.general_advice }}
+                    </p>
+                    {% endif %}
                 </div>
 
-                <div>
-                    <a href="{% url 'dispense_prescription' rx.id %}" class="w-full md:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-circle-check"></i>
+                <div class="shrink-0">
+                    <a href="{% url 'dispense_prescription' rx.id %}" class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-2xl text-xs shadow-md transition flex items-center justify-center space-x-2 group">
+                        <i class="fa-solid fa-check group-hover:scale-110 transition-transform"></i>
                         <span>Dispense & Deduct Stock</span>
                     </a>
                 </div>
             </div>
             {% empty %}
-            <div class="text-center py-10 text-slate-400 text-sm">
+            <div class="text-center py-12 text-slate-400 text-xs">
                 <i class="fa-solid fa-circle-check text-emerald-500 text-3xl mb-2 block"></i>
-                All prescriptions have been dispensed! No backlog at the pharmacy.
+                All electronic prescriptions have been fulfilled. The pharmacy queue is clear!
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- 2. Medicine Inventory Table -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <!-- 2. Drug Formulary & Live Stock Table -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-card overflow-hidden">
+        <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h2 class="text-base font-bold text-slate-800">Hospital Pharmacy Stock & Batches</h2>
-                <p class="text-xs text-slate-400">Live inventory tracking and automated reorder alerts</p>
+                <h2 class="text-base font-bold text-slate-900">Hospital Formulary & Inventory Stock Levels</h2>
+                <p class="text-xs text-slate-400">Batches, unit pricing, expiration dates, and automated reorder triggers</p>
+            </div>
+            <div>
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="search-meds" oninput="filterMeds()" placeholder="Filter medicine name..."
+                           class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                </div>
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
+            <table class="w-full text-left text-xs" id="med-table">
+                <thead class="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
                     <tr>
-                        <th class="py-3 px-4">Medicine Name</th>
-                        <th class="py-3 px-4">Generic Composition</th>
-                        <th class="py-3 px-4">Category</th>
+                        <th class="py-3 px-4">Formulation Name</th>
+                        <th class="py-3 px-4">Generic Molecule</th>
+                        <th class="py-3 px-4">Type</th>
                         <th class="py-3 px-4">Batch & Expiry</th>
-                        <th class="py-3 px-4">Unit Price</th>
-                        <th class="py-3 px-4">Stock Quantity</th>
-                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4 font-mono">Unit Price</th>
+                        <th class="py-3 px-4">Stock Level Gauge</th>
+                        <th class="py-3 px-4 text-right">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     {% for med in medicines %}
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3 px-4 font-bold text-slate-900">{{ med.name }}</td>
-                        <td class="py-3 px-4 text-slate-500">{{ med.generic_name|default:"-" }}</td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[11px]">
+                    <tr class="med-row hover:bg-slate-50/70 transition">
+                        <td class="py-3.5 px-4 font-bold text-slate-900 med-name">{{ med.name }}</td>
+                        <td class="py-3.5 px-4 text-slate-500 font-medium">{{ med.generic_name|default:"-" }}</td>
+                        <td class="py-3.5 px-4">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[11px]">
                                 {{ med.get_category_display }}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-slate-600 font-mono">
+                        <td class="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
                             {{ med.batch_number }} &bull; Exp: {{ med.expiry_date|date:"M Y" }}
                         </td>
-                        <td class="py-3 px-4 font-mono font-bold text-slate-800">${{ med.unit_price }}</td>
-                        <td class="py-3 px-4 font-mono font-bold">
-                            <span class="text-sm {% if med.is_low_stock %}text-rose-600{% else %}text-emerald-700{% endif %}">
-                                {{ med.stock_quantity }}
-                            </span>
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">${{ med.unit_price }}</td>
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-mono font-black text-xs {% if med.is_low_stock %}text-rose-600{% else %}text-emerald-700{% endif %} w-8 text-right">
+                                    {{ med.stock_quantity }}
+                                </span>
+                                <div class="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full {% if med.is_low_stock %}bg-rose-500{% else %}bg-emerald-500{% endif %} rounded-full"
+                                         style="width: {% widthratio med.stock_quantity 500 100 %}%;"></div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="py-3 px-4">
+                        <td class="py-3.5 px-4 text-right">
                             {% if med.is_low_stock %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 flex items-center w-max">
-                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Low Stock (<= {{ med.reorder_level }})
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 inline-flex items-center">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Low Stock (&lt;={{ med.reorder_level }})
                             </span>
                             {% else %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                In Stock
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center">
+                                <i class="fa-solid fa-check mr-1 text-[9px]"></i> Available
                             </span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7" class="text-center py-6 text-slate-400">No medicines registered in inventory.</td></tr>
+                    <tr><td colspan="7" class="text-center py-8 text-slate-400">No medicines in inventory.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -151,4 +177,15 @@
     </div>
 
 </div>
+
+<script>
+function filterMeds() {
+    const q = document.getElementById('search-meds').value.toLowerCase();
+    const rows = document.querySelectorAll('.med-row');
+    rows.forEach(row => {
+        const name = row.querySelector('.med-name').textContent.toLowerCase();
+        row.style.display = name.includes(q) ? '' : 'none';
+    });
+}
+</script>
 {% endblock %}

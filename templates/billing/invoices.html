@@ -1,88 +1,99 @@
 {% extends 'base.html' %}
 
-{% block title %}Hospital Invoices & Billing - MediFlow{% endblock %}
+{% block title %}Hospital Invoicing & Revenue Desk – MediFlow{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
 
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-indigo-900">
-        <div>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 uppercase tracking-wider">
-                Revenue & Invoicing Cycle
-            </span>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1 text-white">
-                Consolidated Billing Desk
-            </h1>
-            <p class="text-xs text-slate-400 mt-1">One consolidated bill uniting doctor consultations, pharmacy medicine, and lab charges</p>
-        </div>
-        <div>
-            <span class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-2">
-                <i class="fa-solid fa-receipt text-indigo-400"></i>
-                <span>Total Invoices: {{ invoices.count }}</span>
-            </span>
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-navy-950 via-indigo-950 to-navy-900 rounded-3xl p-6 sm:p-8 text-white shadow-card-hover border border-indigo-900/80 relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-mono">
+                    Revenue Cycle Management (RCM)
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5 text-white">
+                    Consolidated Hospital Invoicing Desk
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                    Unified point of billing consolidating Doctor OPD fees, Pharmacy dispense slips, and Diagnostic investigation charges
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-3 text-xs">
+                <div class="px-4 py-2.5 rounded-2xl bg-slate-900/80 border border-slate-700/80 text-slate-200">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Total Invoices</span>
+                    <span class="text-xl font-black text-indigo-300 font-mono">{{ invoices.count }}</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Invoices List Table -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <!-- Invoices Ledger Card -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-card overflow-hidden">
+        <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <h2 class="text-base font-bold text-slate-800">All Patient Invoices</h2>
-                <p class="text-xs text-slate-400">Review status, settle payments, and print medical receipts</p>
+                <h2 class="text-base font-bold text-slate-900">Patient Billing & Collections Ledger</h2>
+                <p class="text-xs text-slate-400">Review payment status, settle counter receipts, and print official invoices</p>
             </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
+                <thead class="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
                     <tr>
                         <th class="py-3 px-4">Invoice #</th>
-                        <th class="py-3 px-4">Date</th>
-                        <th class="py-3 px-4">Patient / UHID</th>
-                        <th class="py-3 px-4">Breakdown (OPD + Rx + Lab)</th>
-                        <th class="py-3 px-4">Net Payable</th>
+                        <th class="py-3 px-4">Timestamp</th>
+                        <th class="py-3 px-4">Patient Profile</th>
+                        <th class="py-3 px-4">Consolidated Breakdown (OPD + Rx + Lab)</th>
+                        <th class="py-3 px-4 font-mono">Net Payable</th>
                         <th class="py-3 px-4">Payment Status</th>
-                        <th class="py-3 px-4 text-right">Receipt</th>
+                        <th class="py-3 px-4 text-right">Receipt Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     {% for inv in invoices %}
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3 px-4 font-mono font-bold text-slate-900">
-                            {{ inv.invoice_number }}
+                    <tr class="hover:bg-slate-50/70 transition">
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <span class="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200 text-slate-800">
+                                {{ inv.invoice_number }}
+                            </span>
                         </td>
-                        <td class="py-3 px-4 text-slate-500">{{ inv.created_at|date:"d M Y, H:i" }}</td>
-                        <td class="py-3 px-4">
-                            <span class="font-bold text-slate-800 block">{{ inv.patient.full_name }}</span>
+                        <td class="py-3.5 px-4 text-slate-500 font-medium">{{ inv.created_at|date:"d M Y, H:i" }}</td>
+                        <td class="py-3.5 px-4">
+                            <span class="font-bold text-slate-900 block text-xs">{{ inv.patient.full_name }}</span>
                             <span class="text-slate-400 font-mono text-[11px]">{{ inv.patient.uhid }}</span>
                         </td>
-                        <td class="py-3 px-4 text-slate-600 font-mono text-[11px]">
-                            OPD: ${{ inv.consultation_fee }} &bull; Rx: ${{ inv.pharmacy_fee }} &bull; Lab: ${{ inv.lab_fee }}
+                        <td class="py-3.5 px-4">
+                            <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-slate-600">
+                                <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100">OPD: ${{ inv.consultation_fee }}</span>
+                                <span class="px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-100">Rx: ${{ inv.pharmacy_fee }}</span>
+                                <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">Lab: ${{ inv.lab_fee }}</span>
+                            </div>
                         </td>
-                        <td class="py-3 px-4 font-mono font-black text-slate-900 text-sm">
+                        <td class="py-3.5 px-4 font-mono font-black text-slate-900 text-sm">
                             ${{ inv.net_payable }}
                         </td>
-                        <td class="py-3 px-4">
+                        <td class="py-3.5 px-4">
                             {% if inv.payment_status == 'PAID' %}
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                <i class="fa-solid fa-check mr-1"></i> Paid ({{ inv.get_payment_mode_display }})
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center">
+                                <i class="fa-solid fa-check mr-1.5 text-emerald-600"></i> Paid &bull; {{ inv.get_payment_mode_display }}
                             </span>
                             {% else %}
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                <i class="fa-solid fa-clock mr-1"></i> Pending Payment
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center">
+                                <i class="fa-solid fa-clock mr-1.5 text-amber-600"></i> Pending Counter Settlement
                             </span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-4 text-right">
-                            <a href="{% url 'invoice_detail' inv.id %}" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold border border-indigo-200 inline-flex items-center space-x-1">
+                        <td class="py-3.5 px-4 text-right">
+                            <a href="{% url 'invoice_detail' inv.id %}" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold border border-indigo-200 inline-flex items-center space-x-1.5 transition">
                                 <i class="fa-solid fa-file-invoice"></i>
-                                <span>View Receipt</span>
+                                <span>View Receipt &rarr;</span>
                             </a>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7" class="text-center py-8 text-slate-400">No invoices recorded yet.</td></tr>
+                    <tr><td colspan="7" class="text-center py-10 text-slate-400">No invoices generated yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
